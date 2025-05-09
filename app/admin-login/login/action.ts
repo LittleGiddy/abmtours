@@ -1,4 +1,5 @@
 'use server';
+
 import clientPromise from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
@@ -18,9 +19,9 @@ export async function loginAdmin({ email, password }: { email: string; password:
     return NextResponse.json({ success: false, message: 'Incorrect password' });
   }
 
-  // Optional: Strip sensitive fields
-  const { password: _pw, ...safeAdmin } = admin;
-  const safeAdminJson = JSON.parse(JSON.stringify(safeAdmin)); // 👈 serialize it
+  // Strip password before returning
+  const { password: _, ...safeAdmin } = admin;
+  const safeAdminJson = JSON.parse(JSON.stringify(safeAdmin));
 
   const res = NextResponse.json({ success: true, admin: safeAdminJson });
 
