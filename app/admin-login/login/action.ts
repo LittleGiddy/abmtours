@@ -19,12 +19,9 @@ export async function loginAdmin({ email, password }: { email: string; password:
     return NextResponse.json({ success: false, message: 'Incorrect password' });
   }
 
-  // Remove password from the object
-  const { password: /* remove */, ...safeAdmin } = admin;
-  const safeAdminJson = JSON.parse(JSON.stringify(safeAdmin));
+  const res = NextResponse.json({ success: true });
 
-  const res = NextResponse.json({ success: true, admin: safeAdminJson });
-
+  // ✅ Set the cookie on the response
   res.cookies.set('admin-auth', 'true', {
     httpOnly: true,
     path: '/',
