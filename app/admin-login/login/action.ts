@@ -1,3 +1,4 @@
+'use server';
 import clientPromise from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
