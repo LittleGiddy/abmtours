@@ -19,8 +19,8 @@ export async function loginAdmin({ email, password }: { email: string; password:
     return NextResponse.json({ success: false, message: 'Incorrect password' });
   }
 
-  // Exclude password field safely
-  const { password: removed, ...safeAdmin } = admin;
+  // Remove password from the object
+  const { password: /* remove */, ...safeAdmin } = admin;
   const safeAdminJson = JSON.parse(JSON.stringify(safeAdmin));
 
   const res = NextResponse.json({ success: true, admin: safeAdminJson });
