@@ -1,10 +1,10 @@
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGO_URI;
 const options = {};
 
 if (!uri) {
-  throw new Error('MONGODB_URI is not defined in environment variables');
+  throw new Error('MONGO_URI is not defined in environment variables');
 }
 
 let client: MongoClient;
