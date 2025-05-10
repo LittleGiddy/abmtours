@@ -2,6 +2,7 @@
 
 import clientPromise from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
+import { cookies } from 'next/headers';
 
 export async function loginAdmin({ email, password }: { email: string; password: string }) {
   const client = await clientPromise;
@@ -18,6 +19,13 @@ export async function loginAdmin({ email, password }: { email: string; password:
     return { success: false, message: 'Incorrect password' };
   }
 
-  // ✅ Successful login → Return plain object
+  // ✅ Set cookie directly using Next.js cookies()
+  const cookieStore = cookies();
+  cookieStore.set('admin-auth', 'true', {
+    httpOnly: true,
+    path: '/',
+    maxAge: 60 * 60 * 24, // 1 day
+  });
+
   return { success: true, message: 'Login successful' };
 }
