@@ -19,16 +19,9 @@ export async function loginAdmin({ email, password }: { email: string; password:
     return NextResponse.json({ success: false, message: 'Incorrect password' });
   }
 
-  // ✅ Safely serialize admin info (if needed later)
-  const safeAdmin = {
-    _id: admin._id.toString(),
-    email: admin.email,
-    username: admin.username, // include whatever fields you want
-  };
+  // Don't send whole admin object unless sanitized
+  const res = NextResponse.json({ success: true });
 
-  const res = NextResponse.json({ success: true, admin: safeAdmin });
-
-  // ✅ Set the cookie on the response
   res.cookies.set('admin-auth', 'true', {
     httpOnly: true,
     path: '/',
