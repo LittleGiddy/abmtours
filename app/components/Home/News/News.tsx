@@ -5,7 +5,7 @@ import NewsCards from "./NewsCards";
 const newsData = [
   {
     slug: "serengeti-national-park",
-    image: "/images/giraffe.jpg",
+    image: "/images/Giraffe.jpg",
     title: "Serengeti National Park",
     description: "Serengeti is one of Africa’s most celebrated parks..."
   },
@@ -48,7 +48,7 @@ const newsData = [
   },
   {
     slug: "giraffe-spottingg",
-    image: "/images/giraffe.jpg",
+    image: "/images/Giraffe2.jpg",
     title: "Mahale National Park",
     description: "Experience the beauty of giraffes in their natural habitat..."
   }
