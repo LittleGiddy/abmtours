@@ -2,7 +2,6 @@
 
 import clientPromise from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
-import { NextResponse } from 'next/server';
 
 export async function loginAdmin({ email, password }: { email: string; password: string }) {
   const client = await clientPromise;
@@ -10,23 +9,15 @@ export async function loginAdmin({ email, password }: { email: string; password:
   const admin = await db.collection('admins').findOne({ email });
 
   if (!admin) {
-    return NextResponse.json({ success: false, message: 'Admin not found' });
+    return { success: false, message: 'Admin not found' };
   }
 
   const isMatch = await bcrypt.compare(password, admin.password);
 
   if (!isMatch) {
-    return NextResponse.json({ success: false, message: 'Incorrect password' });
+    return { success: false, message: 'Incorrect password' };
   }
 
-  // Don't send whole admin object unless sanitized
-  const res = NextResponse.json({ success: true });
-
-  res.cookies.set('admin-auth', 'true', {
-    httpOnly: true,
-    path: '/',
-    maxAge: 60 * 60 * 24, // 1 day
-  });
-
-  return res;
+  // ✅ Successful login → Return plain object
+  return { success: true, message: 'Login successful' };
 }
