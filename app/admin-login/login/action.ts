@@ -19,8 +19,8 @@ export async function loginAdmin({ email, password }: { email: string; password:
     return { success: false, message: 'Incorrect password' };
   }
 
-  // ✅ Set cookie directly using Next.js cookies()
-  const cookieStore = cookies();
+  // ✅ Await cookies() before using set()
+  const cookieStore = await cookies();
   cookieStore.set('admin-auth', 'true', {
     httpOnly: true,
     path: '/',
