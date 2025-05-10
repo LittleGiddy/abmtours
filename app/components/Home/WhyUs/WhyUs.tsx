@@ -12,7 +12,7 @@ const WhyUs = () => {
         {/* Top Three Icons */}
         <div>
           <WhyUsCard
-            image="/images/cultural.svg"
+            image="/images/Cultural.svg"
             title="Authentic cultural and safari experiences"
             description="Experience the rich culture and breathtaking wildlife of Tanzania through immersive safaris, traditional encounters, and ethical tourism that honors local heritage."
           />
