@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const isLoggedIn = request.cookies.get('admin-auth')?.value === 'true';
 
-  const isAdminPath = request.nextUrl.pathname.startsWith('/admins');
+  const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
 
   if (isAdminPath && !isLoggedIn) {
     return NextResponse.redirect(new URL('/admin-login/login', request.url));
