@@ -1,8 +1,9 @@
-"use client";
+'use client';
+
 import Image from 'next/image';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginAdmin } from "./action"; // Make sure this calls an API route that returns a NextResponse
+import { loginAdmin } from "./action";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -14,13 +15,12 @@ export default function AdminLoginPage() {
     e.preventDefault();
 
     try {
-      const res = await loginAdmin({ email, password });
-      const data = await res.json(); // 👈 Parse the response JSON
+      const res = await loginAdmin({ email, password }); // ✅ res is a plain object
 
-      if (data?.success) {
+      if (res?.success) {
         router.push("/admin/Dashboard");
       } else {
-        setError(data?.message || "Login failed");
+        setError(res?.message || "Login failed");
       }
     } catch (err) {
       console.error("Login error:", err);
