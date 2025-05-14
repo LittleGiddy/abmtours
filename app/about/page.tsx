@@ -35,33 +35,88 @@ const About = () => {
         </p>
       </section>
 
-      {/* Mission & Vision Section */}
-      <section className="py-16 bg-white px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-3xl text-blue-950 font-semibold">
-            Our Mission & Vision
-          </h2>
-          <div className="mt-12 grid md:grid-cols-2 gap-8">
-            {/* Mission */}
-            <div className="bg-gray-100 p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl text-blue-950 font-bold">Our Mission</h3>
-              <p className="mt-2 text-gray-700">
-                To provide unique and immersive tourism experiences that
-                highlight Tanzania’s natural beauty and rich cultural diversity
-                while ensuring sustainable and responsible travel.
-              </p>
-            </div>
-            {/* Vision */}
-            <div className="bg-gray-100 p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl text-blue-950 font-bold">Our Vision</h3>
-              <p className="mt-2 text-gray-700">
-                To become one of the top 10 leading cultural and tourism
-                companies in Tanzania and East Africa within the next 10 years,
-                offering unparalleled services in adventure, wildlife, and
-                cultural tourism.
-              </p>
-            </div>
-          </div>
+      {/* New Sections (Membership, Services, Team, etc.) */}
+      <section className="py-16 px-6 max-w-5xl mx-auto text-left">
+        {/* Membership and Certification */}
+        <div className="mb-12">
+          <h2 className="text-3xl text-blue-950 font-semibold text-center mb-6">Membership &amp; Certification</h2>
+          <ul className="list-disc list-inside space-y-2 text-lg text-gray-700">
+            <li>Registered with BRELA (Business Registrations and Licensing Agency)</li>
+            <li>In partnership with Tanzamerica Safaris for logistical support</li>
+          </ul>
+        </div>
+
+        {/* Our Services */}
+        <div className="mb-12">
+          <h2 className="text-3xl text-blue-950 font-semibold text-center mb-6">Our Services</h2>
+          <p className="mb-4 text-lg text-gray-700">
+            ABM Tours and Safaris Ltd offers a variety of tourism services, including:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-lg text-gray-700">
+            <li>Safari and Adventure Tours – Serengeti, Ngorongoro, Tarangire, Selous, and more</li>
+            <li>Tour Planning &amp; Consultation – Custom-made travel packages tailored for local and international tourists</li>
+            <li>Historical and Heritage Tours – Visits to Bagamoyo, Zanzibar, Kilwa, and other UNESCO heritage sites</li>
+            <li>Eco-Tourism and Sustainable Travel – Promoting responsible tourism to conserve nature and support local communities</li>
+            <li>Research &amp; Documentation – Studies on African cultures, traditions, and indigenous heritage</li>
+            <li>Cultural Tourism – Engaging experiences with Tanzania’s 120+ ethnic groups, including traditional music, food, language, and attire</li>
+          </ul>
+        </div>
+
+        {/* Our Team */}
+        <div className="mb-12">
+          <h2 className="text-3xl text-blue-950 font-semibold text-center mb-6">Our Team</h2>
+          <p className="text-lg text-gray-700">
+            Our team comprises dedicated professionals passionate about tourism, culture, and customer service. We work with certified tour guides, cultural experts, and local communities to deliver authentic and memorable experiences.
+          </p>
+        </div>
+
+        {/* Safety Policy */}
+        <div className="mb-12">
+          <h2 className="text-3xl text-blue-950 font-semibold text-center mb-6">Safety Policy</h2>
+          <ul className="list-disc list-inside space-y-2 text-lg text-gray-700">
+            <li>Partnering with certified tour operators for safe transportation and accommodation</li>
+            <li>Providing trained guides and first aid kits for all tours</li>
+            <li>Ensuring compliance with Tanzania&apos;s tourism safety regulations</li>
+          </ul>
+        </div>
+
+        {/* Our Partners */}
+        <div className="mb-12">
+          <h2 className="text-3xl text-blue-950 font-semibold text-center mb-6">Our Partners</h2>
+          <ul className="list-disc list-inside space-y-2 text-lg text-gray-700">
+            <li>Tanzamerica Safaris – Supporting with vehicles, tour guides, and logistics</li>
+            <li>Local hotels, lodges, and eco-resorts</li>
+            <li>Cultural institutions and local artisans</li>
+          </ul>
+        </div>
+
+        {/* Our Clients */}
+        <div className="mb-12">
+          <h2 className="text-3xl text-blue-950 font-semibold text-center mb-6">Our Clients</h2>
+          <ul className="list-disc list-inside space-y-2 text-lg text-gray-700">
+            <li>Local and international tourists</li>
+            <li>Cultural enthusiasts and researchers</li>
+            <li>Students and educational institutions</li>
+            <li>Corporate and private groups</li>
+          </ul>
+        </div>
+
+        {/* Projects Portfolio */}
+        <div className="mb-12">
+          <h2 className="text-3xl text-blue-950 font-semibold text-center mb-6">Projects Portfolio</h2>
+          <ul className="list-disc list-inside space-y-2 text-lg text-gray-700">
+            <li>Community-based tourism initiatives</li>
+            <li>Cultural preservation programs</li>
+            <li>Social media campaigns for tourism awareness</li>
+          </ul>
+        </div>
+
+        {/* Our Awards & Recognition */}
+        <div>
+          <h2 className="text-3xl text-blue-950 font-semibold text-center mb-6">Our Awards &amp; Recognition</h2>
+          <p className="text-lg text-gray-700">
+            As a young company, we are actively working towards earning industry certifications and awards for our commitment to excellence in tourism and cultural heritage.
+          </p>
         </div>
       </section>
 
@@ -81,9 +136,9 @@ const About = () => {
                 className="rounded-full mx-auto"
               />
               <h3 className="mt-4 text-xl font-bold">Agness Mdee</h3>
-              <p className="text-gray-600">Co-Founder & CTO</p>
+              <p className="text-gray-600">Founder</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-lg text-center">
               <Image
                 src="/images/ossy.jpg"
@@ -95,7 +150,7 @@ const About = () => {
               <h3 className="mt-4 text-blue-950 text-xl font-bold">
                 Oscar Yesse
               </h3>
-              <p className="text-gray-600">Co-Founder & CEO</p>
+              <p className="text-gray-600">Managing Director</p>
             </div>
           </div>
         </div>

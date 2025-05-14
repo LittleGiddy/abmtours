@@ -23,9 +23,9 @@ const newsData = [
     description: "The Ngorongoro Conservation Area, a UNESCO World..."
   },
   {
-    slug: "nyerere-national-park",
-    image: "/images/nyerere_park.jpg",
-    title: "Nyerere National Park",
+    slug: "tarangire-national-park",
+    image: "/images/tarangire2.jpg",
+    title: "Tarangire National Park",
     description: "Join fellow travelers on an unforgettable journey through Tanzania..."
   },
   {

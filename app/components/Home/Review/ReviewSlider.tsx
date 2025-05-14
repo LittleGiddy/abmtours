@@ -3,13 +3,10 @@ import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/effect-cards";
-import { EffectCards } from "swiper/modules";
+import { EffectCards, Autoplay } from "swiper/modules"; // ✅ Import Autoplay
 import { getRandomReviews } from "@/app/data/data";
 import { FaStar } from "react-icons/fa";
 import Image from "next/image";
-
-
-
 
 const ReviewSlider = () => {
   return (
@@ -17,7 +14,11 @@ const ReviewSlider = () => {
       <Swiper
         effect={"cards"}
         grabCursor={true}
-        modules={[EffectCards]}
+        modules={[EffectCards, Autoplay]} // ✅ Add Autoplay module
+        autoplay={{
+          delay: 4000, // ✅ Slide every 3 seconds
+          disableOnInteraction: false,
+        }}
         className="md:w-[450px] md:h-[350px] w-[90%] h-[300px]"
       >
         {getRandomReviews.map((data) => {
@@ -28,16 +29,15 @@ const ReviewSlider = () => {
                   {data.Review}
                 </p>
 
-                {/* Icons */}
-
-                <div className="flex items items-center mt-4">
+                {/* Stars */}
+                <div className="flex items-center mt-4">
                   <FaStar className="md:w-6 md:h-6 w-3 h-3 text-amber-600" />
                   <FaStar className="md:w-6 md:h-6 w-3 h-3 text-amber-600" />
                   <FaStar className="md:w-6 md:h-6 w-3 h-3 text-amber-600" />
                   <FaStar className="md:w-6 md:h-6 w-3 h-3 text-amber-600" />
                 </div>
 
-                {/* Users profile */}
+                {/* User profile */}
                 <div className="mt-10">
                   <div className="flex items-center space-x-4">
                     <Image
@@ -48,12 +48,7 @@ const ReviewSlider = () => {
                       className="rounded-full"
                     />
                     <div>
-                      <p className="textsm sm:text-lg font-semibold">{data.name}</p>
-                      
-                     
-                     
-                  
-
+                      <p className="text-sm sm:text-lg font-semibold">{data.name}</p>
                     </div>
                   </div>
                 </div>

@@ -12,10 +12,10 @@ const Review = () => {
             What Do our Customers say about Us?
           </h1>
           <p className="mt-6 text-white">
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry. Lorem Ipsum has been the industry&apos;s standard dummy
-            text ever since the 1500s, when an unknown printer took a galley of
-            type and scrambled it to make a type specimen book.
+            Our safari was an unforgettable adventure! The guides were
+            knowledgeable, friendly, and made every moment special. We saw
+            breathtaking wildlife and stunning landscapes. Highly recommend this
+            team for anyone seeking an authentic safari experience!
           </p>
 
           {/* Ratings */}

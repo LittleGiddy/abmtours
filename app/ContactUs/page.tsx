@@ -112,10 +112,10 @@ const ContactUs = () => {
               <div className="flex items-center space-x-3">
                 <Phone className="text-blue-950" />
                 <a
-                  href="tel:+255123456789"
+                  href="tel:+255678991004"
                   className="text-blue-950 hover:underline"
                 >
-                  +255 123 456 789
+                  +255 678 991 004
                 </a>
               </div>
               <div className="flex items-center space-x-3">

@@ -233,30 +233,37 @@ export const parkData: Record<string, Park> = {
     },
   },
 
-  "ngorongoro-conservation-area": {
-    title: "Ngorongoro Conservation Area",
+  "tarangire-national-park": {
+    title: "Tarangire National Park",
     description:
-      "A UNESCO World Heritage Site featuring the stunning Ngorongoro Crater and rich Maasai culture.",
-    description2: "",
-    whenToVisit: "June to October is best, but wildlife is present all year.",
+      "One of Tanzania’s hidden gems, is a sanctuary of ancient baobabs and sweeping savannahs. Known for its massive elephant herds and seasonal migration, it offers a wild, uncrowded safari experience. Predators prowl the grasslands, while rare species like the fringe-eared oryx and gerenuk thrive along the life-giving Tarangire River.",
+    description2:
+      "Tarangire National Park is a scenic wildlife destination in northern Tanzania, located about 118 km from Arusha. Covering 2,850 square kilometers, it is the sixth-largest park in the country.The park is best known for its massive elephant herds, with groups of up to 300 elephants frequently spotted. It is also home to lions, leopards, cheetahs, giraffes, zebras, wildebeests, and buffalo. During the dry season, wildlife gathers around the Tarangire River, making it an excellent spot for game viewing.For bird lovers, Tarangire offers over 550 bird species, including unique species like the yellow-collared lovebird and Tanzanian red-billed hornbill. The wet season brings an influx of migratory birds, making it a top birdwatching destination. Unlike the busier Serengeti and Ngorongoro, Tarangire remains less crowded, providing a more peaceful and intimate safari experience.",
+    whenToVisit: "June to October for dry season game viewing.",
     activities: [
-      "Crater Safari",
-      "Cultural Visits",
-      "Walking Safaris",
-      "Archaeological Sites",
+      "Elephants Migration",
+      "Game Drive",
+      "Walking Safari",
+      "Bird Watching",
     ],
     gallery: [
-      "/images/ngorongoro1.jpg",
-      "/images/ngorongoro2.jpg",
-      "/images/ngorongoro3.jpg",
-      "/images/ngorongoro4.jpg",
+      "/images/Tarangire.jpg",
+      "/images/tarangire2.jpg",
+      "/images/tarangire3.jpg",
+      "/images/tarangire4.jpg",
     ],
     wildlife: [
-      { name: "Rhino", image: "/images/rhino.jpg" },
-      { name: "Lion", image: "/images/lion.jpg" },
-      { name: "Hippo", image: "/images/hippo.jpg" },
+      { name: "Lion", image: "/images/Lion2.jpg" },
+      { name: "African Wilddog", image: "/images/wilddog.jpg" },
+      { name: "Zebra", image: "/images/zebra.jpg" },
+      
       { name: "Elephant", image: "/images/elephant.jpg" },
-      { name: "Flamingo", image: "/images/flamingo.jpg" },
+      { name: "Hippo", image: "/images/Hippo.jpg" },
+      { name: "Maasai Giraffe", image: "/images/maasaigiraffe.jpg" },
+      { name: "Leopard", image: "/images/Leopard2.jpg" },
+      { name: "African Fish Eagle", image: "/images/fisheagle.jpg" },
+      { name: "Buffalo", image: "/images/Buffalo.jpg" },
+      { name: "Wildebeest", image: "/images/wildbeest.jpg" },
     ],
     visitTable: {
       months: [
@@ -274,24 +281,17 @@ export const parkData: Record<string, Park> = {
         "May",
       ],
       status: [
-        "BEST",
-        "BEST",
-        "BEST",
-        "BEST",
-        "GOOD",
-        "GOOD",
-        "GOOD",
-        "GOOD",
-        "OKAY",
-        "POOR",
-        "POOR",
-        "POOR",
+        
       ],
       notes: [
-        { range: [0, 3], text: "Cool & Dry, Perfect Visibility" },
-        { range: [4, 7], text: "Mild Rains, Still Good Access" },
-        { range: [8, 11], text: "Heavier Rains, Slippery Trails" },
+        { range: [0, 4], text: "Wildlife Viewing" },
+        { range: [1, 4], text: "Elephant Migration" },
+        { range: [5, 11], text: "Bird Watching" },
+        { range: [9, 11], text: "Low Season" },
       ],
     },
   },
+
+
+   
 };

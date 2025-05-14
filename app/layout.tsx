@@ -11,6 +11,9 @@ const font = Poppins({
 export const metadata: Metadata = {
   title: "ABM Tours and Safaris Ltd",
   description: "Explore the Unknown with Us",
+  icons: {
+    icon: "/ABMTRANS-01.png",
+  },
 };
 
 export default function RootLayout({
@@ -19,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${font.className} antialiased flex flex-col min-h-screen`}>
+    <html lang="en" style={{ colorScheme: "light" }}>
+      <body className={`${font.className} antialiased flex flex-col min-h-screen bg-white text-black`}>
         <ClientLayout>{children}</ClientLayout> {/* Use the client component here */}
       </body>
     </html>
