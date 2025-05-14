@@ -1,20 +1,19 @@
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI!;
+const uri = process.env.MONGODB_URI;
 const options = {};
+
+if (!uri) {
+  throw new Error('❌ MONGODB_URI is not set in environment variables.');
+}
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-// Properly extend NodeJS.Global to include our cached client
 declare global {
-  // This allows reuse in development without TS errors
+  // For hot reload in development to reuse the Mongo client
   // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
-}
-
-if (!process.env.MONGODB_URI) {
-  throw new Error('Please add your Mongo URI to .env.local');
 }
 
 if (process.env.NODE_ENV === 'development') {
