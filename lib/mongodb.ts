@@ -1,17 +1,17 @@
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGO_URI;
+const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
 const options = {};
 
 if (!uri) {
-  throw new Error('MONGO_URI is not defined in environment variables');
+  throw new Error('❌ MongoDB URI is not set in environment variables.');
 }
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-// Extend global to cache the Mongo client promise in development
 declare global {
+  // For hot reload in development to reuse the Mongo client
   // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
