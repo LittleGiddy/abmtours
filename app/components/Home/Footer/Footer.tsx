@@ -87,7 +87,7 @@ export default function Footer() {
                 className="text-gray-400 hover:text-white"
               >
                 <FaThreads size={24} />
-                <FaThreads />
+                
               </a>
             </div>
           </div>
