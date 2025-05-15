@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" style={{ colorScheme: "light" }}>
       <body className={`${font.className} antialiased flex flex-col min-h-screen bg-white text-black`}>
-        <TidioScript /> {/* ⬅️ Add Tidio script here */}
+        <TidioScript />
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

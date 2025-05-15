@@ -37,7 +37,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/Tours & Safaris"
+                  href="/tours-and-safaris"
                   className="text-gray-400 hover:text-white"
                 >
                   Tours & Safaris
@@ -45,7 +45,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/contact"
+                  href="/ContactUs"
                   className="text-gray-400 hover:text-white"
                 >
                   Contact Us
@@ -87,13 +87,13 @@ export default function Footer() {
                 className="text-gray-400 hover:text-white"
               >
                 <FaThreads size={24} />
-                <FaThreads />
+                
               </a>
             </div>
           </div>
         </div>
 
-        {/* Copyright */}
+        {/* Copyright Area */}
         <div className="mt-8 text-center text-gray-300 border-t border-gray-700 pt-4">
           &copy; {new Date().getFullYear()} ABM Tours and Safaris Ltd. All
           rights reserved.
