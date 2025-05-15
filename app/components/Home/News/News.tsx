@@ -31,7 +31,7 @@ const newsData = [
   {
     slug: "tourist-adventures",
     image: "/images/Tourists.jpg",
-    title: "Ngorongoro Crater",
+    title: "Nyerere National Park",
     description: "Join fellow travelers on an unforgettable journey through Tanzania..."
   },
   {
