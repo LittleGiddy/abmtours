@@ -37,7 +37,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/Tours & Safaris"
+                  href="/tours-and-safaris"
                   className="text-gray-400 hover:text-white"
                 >
                   Tours & Safaris
@@ -45,7 +45,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/contact"
+                  href="/ContactUs"
                   className="text-gray-400 hover:text-white"
                 >
                   Contact Us
