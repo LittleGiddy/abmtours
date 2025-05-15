@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import ClientLayout from "./components/ClientLayout"; // Import the client component
+import ClientLayout from "./components/ClientLayout";
+import TidioScript from "./components/TidioScript"; // ⬅️ Add this
 
 const font = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -24,7 +25,8 @@ export default function RootLayout({
   return (
     <html lang="en" style={{ colorScheme: "light" }}>
       <body className={`${font.className} antialiased flex flex-col min-h-screen bg-white text-black`}>
-        <ClientLayout>{children}</ClientLayout> {/* Use the client component here */}
+        <TidioScript /> {/* ⬅️ Add Tidio script here */}
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
