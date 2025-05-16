@@ -20,7 +20,7 @@ export default function NyerereRuahaPage() {
         <div className="absolute inset-0 bg-black opacity-60 z-10"></div>
         <div className="relative z-20 px-6">
           <h1 className="text-4xl md:text-5xl font-bold">
-            Serengeti Highlights Safari
+            Nyerere or Ruaha Quick Gateway
           </h1>
         </div>
       </section>
