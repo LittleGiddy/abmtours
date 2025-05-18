@@ -14,16 +14,16 @@ const FlashMessage = ({ message, onClose }: { message: string; onClose: () => vo
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  return (
+ return (
     <div
-      className={`fixed top-4 right-4 z-50 transition-all duration-500 ease-in-out ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-100%]"
+      className={`transition-all duration-500 ease-in-out ${
+        isVisible ? "opacity-100" : "opacity-0"
       }`}
     >
-      <div className="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
+      <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg flex items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 mr-2"
+          className="h-6 w-6 mr-2 text-green-500"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -41,7 +41,7 @@ const FlashMessage = ({ message, onClose }: { message: string; onClose: () => vo
             setIsVisible(false);
             setTimeout(onClose, 500);
           }}
-          className="ml-4 text-white hover:text-gray-200"
+          className="ml-4 text-green-500 hover:text-green-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
