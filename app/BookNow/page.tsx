@@ -9,7 +9,7 @@ const FlashMessage = ({ message, onClose }: { message: string; onClose: () => vo
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(onClose, 500);
-    }, 5000);
+    }, 7000);
 
     return () => clearTimeout(timer);
   }, [onClose]);
@@ -461,7 +461,7 @@ const BookNow = () => {
               <span>I agree to the terms and conditions.</span>
             </label>
 
-            <button
+                        <button
               type="submit"
               disabled={isSubmitting}
               className={`bg-blue-950 text-white px-6 py-2 rounded hover:bg-blue-900 transition cursor-pointer ${
@@ -496,11 +496,20 @@ const BookNow = () => {
                 "Submit Booking Request"
               )}
             </button>
+
+            {/* Add this right after the submit button */}
+            <div className="mt-4">
+              {showFlash && (
+                <FlashMessage
+                  message="Your booking request has been submitted successfully!"
+                  onClose={() => setShowFlash(false)}
+                />
+              )}
+            </div>
           </form>
         </div>
       </div>
     </div>
   );
-};
-
+}
 export default BookNow;
