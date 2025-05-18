@@ -1,4 +1,4 @@
- import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
@@ -26,39 +26,41 @@ export async function POST(request: Request) {
       email,
       phone,
       travelType,
-      tripEnhancements,
+      tripEnhancements = [],
       accommodation,
       airportPickup,
       expectedDate,
       budget,
       nights,
       adults,
-      children,
-      destinations,
-      additionalInfo,
-      agreeToTerms,
-      agreeToInfo,
-      captchaVerified,
+      children = "0",
+      destinations = [],
+      additionalInfo = "",
+      agreeToTerms = false,
+      agreeToInfo = false,
     } = body;
 
     // Required fields validation
-    if (
-      !firstName ||
-      !lastName ||
-      !email ||
-      !phone ||
-      !travelType ||
-      !accommodation ||
-      !airportPickup ||
-      !expectedDate ||
-      !budget ||
-      !nights ||
-      !adults ||
-      !children ||
-      !agreeToInfo ||
-      !captchaVerified
-    ) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const requiredFields = [
+      firstName,
+      lastName,
+      email,
+      phone,
+      travelType,
+      accommodation,
+      airportPickup,
+      expectedDate,
+      budget,
+      nights,
+      adults,
+      agreeToInfo,
+    ];
+
+    if (requiredFields.some(field => !field)) {
+      return NextResponse.json(
+        { error: 'Missing required fields' }, 
+        { status: 400 }
+      );
     }
 
     const client = await clientPromise;
@@ -70,29 +72,31 @@ export async function POST(request: Request) {
       email,
       phone,
       travelType,
-      tripEnhancements: tripEnhancements || [],
+      tripEnhancements,
       accommodation,
       airportPickup,
       expectedDate,
       budget,
       nights,
       adults,
-      children,
-      destinations: destinations || [],
+      children: children || "0",
+      destinations,
       additionalInfo,
-      agreeToTerms: !!agreeToTerms,
-      agreeToInfo: !!agreeToInfo,
-      captchaVerified: !!captchaVerified,
+      agreeToTerms,
+      agreeToInfo,
       createdAt: new Date(),
     });
 
     return NextResponse.json(
-      { message: 'Booking saved!', id: result.insertedId },
+      { message: 'Booking saved successfully!', id: result.insertedId },
       { status: 201 }
     );
   } catch (error) {
     console.error('MongoDB insert error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' }, 
+      { status: 500 }
+    );
   }
 }
 
@@ -102,7 +106,10 @@ export async function DELETE(request: Request) {
   const id = searchParams.get('id');
 
   if (!id || !ObjectId.isValid(id)) {
-    return NextResponse.json({ error: 'Invalid or missing booking ID' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid or missing booking ID' }, 
+      { status: 400 }
+    );
   }
 
   try {
@@ -113,10 +120,16 @@ export async function DELETE(request: Request) {
     if (result.deletedCount === 1) {
       return NextResponse.json({ message: 'Booking deleted' });
     } else {
-      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Booking not found' }, 
+        { status: 404 }
+      );
     }
   } catch (error) {
     console.error('Delete error:', error);
-    return NextResponse.json({ error: 'Failed to delete booking' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to delete booking' }, 
+      { status: 500 }
+    );
   }
 }
