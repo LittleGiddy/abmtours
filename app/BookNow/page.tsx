@@ -22,14 +22,12 @@ const BookNow = () => {
     agreeToInfo: false,
   });
 
-  const [flashMessage, setFlashMessage] = useState("");
-
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
-    const target = e.target;
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
     const { name, value, type } = target;
     const checked = (target as HTMLInputElement).checked;
 
@@ -73,9 +71,7 @@ const BookNow = () => {
       const data = await res.json();
 
       if (res.ok) {
-        setFlashMessage("🎉 Your booking request has been submitted successfully!");
-        setTimeout(() => setFlashMessage(""), 5000); // hide after 5s
-
+        alert("Your booking request has been submitted.");
         setFormData({
           firstName: "",
           lastName: "",
@@ -96,26 +92,16 @@ const BookNow = () => {
           agreeToInfo: false,
         });
       } else {
-        setFlashMessage(data.error || "⚠️ Something went wrong, please try again.");
-        setTimeout(() => setFlashMessage(""), 5000);
+        alert(data.error || "Something went wrong, please try again.");
       }
     } catch (error) {
       console.error("Submission error:", error);
-      setFlashMessage("❌ There was an error submitting your request.");
-      setTimeout(() => setFlashMessage(""), 5000);
+      alert("There was an error submitting your request.");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
-      {/* FLASH MESSAGE */}
-      {flashMessage && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50 animate-fade-in">
-          {flashMessage}
-        </div>
-      )}
-
-      {/* Hero Section */}
       <section className="relative h-[60vh] flex items-center justify-center text-center text-white">
         <video
           autoPlay
@@ -136,7 +122,6 @@ const BookNow = () => {
         </div>
       </section>
 
-      {/* Booking Form */}
       <div className="bg-gray-100 py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-3xl font-semibold text-center mb-6">
@@ -160,13 +145,254 @@ const BookNow = () => {
               />
             ))}
 
-            {/* Add the rest of your form fields (radio buttons, checkboxes, date, budget, etc.) here */}
+            <fieldset>
+              <legend className="font-medium mb-2">Type of Travel</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  "Big Safaris",
+                  "Safari & Beach",
+                  "Honeymoon",
+                  "The Migration",
+                  "Vacation",
+                  "Other",
+                ].map((type) => (
+                  <label key={type} className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="travelType"
+                      value={type}
+                      checked={formData.travelType === type}
+                      onChange={handleChange}
+                      required
+                    />
+                    <span>{type}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="font-medium mb-2">Accommodation Type</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  "Luxury",
+                  "Mid Range",
+                  "Honeymoon",
+                  "Don't know yet",
+                ].map((type) => (
+                  <label key={type} className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="accommodation"
+                      value={type}
+                      checked={formData.accommodation === type}
+                      onChange={handleChange}
+                      required
+                    />
+                    <span>{type}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="font-medium mb-2">Airport Pickup</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  "Kilimanjaro (KIA)",
+                  "Dar es salaam (JNIA)",
+                  "Zanzibar (ZNZ)",
+                ].map((type) => (
+                  <label key={type} className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="airportPickup"
+                      value={type}
+                      checked={formData.airportPickup === type}
+                      onChange={handleChange}
+                      required
+                    />
+                    <span>{type}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="font-medium mb-2">Trip Enhancements</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  "Beach",
+                  "Boat Safari",
+                  "Bush Drive",
+                  "Chimps/Guerilla",
+                  "Night Game Drive",
+                  "Walking Safari",
+                  "Other",
+                ].map((enh) => (
+                  <label key={enh} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      name="tripEnhancements"
+                      value={String(enh)}
+                      checked={formData.tripEnhancements.includes(enh)}
+                      onChange={handleChange}
+                    />
+                    <span>{enh}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className="font-medium mb-2">Destinations</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  "Arusha",
+                  "Katavi National Park",
+                  "Lake Manyara",
+                  "Mafia Island",
+                  "Mahale National Park",
+                  "Mikumi National Park",
+                  "Nyerere National Park",
+                  "Ngorongoro Crater",
+                  "Pemba Island",
+                  "Ruaha National Park",
+                  "Serengeti National Park",
+                  "Tarangire Nationa",
+                  "Zanzibar Beach",
+                  "Other",
+                ].map((place) => (
+                  <label key={place} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      name="destinations"
+                      value={String(place)}
+                      checked={formData.destinations.includes(place)}
+                      onChange={handleChange}
+                    />
+                    <span>{place}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <label className="block font-medium">Expected Start Date</label>
+            <input
+              type="date"
+              name="expectedDate"
+              value={formData.expectedDate}
+              onChange={handleChange}
+              required
+              className="w-full p-2 border rounded"
+            />
+
+            <input
+              type="text"
+              name="nights"
+              placeholder="Number of Nights"
+              value={formData.nights}
+              onChange={handleChange}
+              required
+              className="w-full p-2 border rounded"
+            />
+
+            <select
+              name="budget"
+              value={formData.budget}
+              onChange={handleChange}
+              required
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Budget Level (Per person)</option>
+              {[
+                "2000 - 4000",
+                "5000 - 7000",
+                "8000 - 10000",
+                "11000 - 13000",
+                "14000 - 16000",
+                "17000 - 20000",
+                "More than 20000",
+              ].map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+
+            <select
+              name="adults"
+              value={formData.adults}
+              onChange={handleChange}
+              required
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Number of adults</option>
+              {[...Array(7).keys()].map((n) => (
+                <option key={n + 1} value={String(n + 1)}>
+                  {n + 1}
+                </option>
+              ))}
+              <option value="More than 7">More than 7</option>
+            </select>
+
+            <select
+              name="children"
+              value={formData.children}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Number of children</option>
+              <option value="0">None</option>
+              {[...Array(7).keys()].map((n) => (
+                <option key={n + 1} value={String(n + 1)}>
+                  {n + 1}
+                </option>
+              ))}
+              <option value="More than 7">More than 7</option>
+            </select>
+
+            <textarea
+              name="additionalInfo"
+              value={formData.additionalInfo}
+              onChange={handleChange}
+              rows={4}
+              placeholder="Any additional info or special requests?"
+              className="w-full p-2 border rounded"
+            />
+
+            <label className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                name="agreeToInfo"
+                checked={formData.agreeToInfo}
+                onChange={handleChange}
+                required
+                className="form-checkbox"
+              />
+              <span>
+                I agree to be contacted for follow-up and additional
+                information.
+              </span>
+            </label>
+
+            <label className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                name="agreeToTerms"
+                checked={formData.agreeToTerms}
+                onChange={handleChange}
+                required
+                className="form-checkbox"
+              />
+              <span>I agree to the terms and conditions.</span>
+            </label>
 
             <button
               type="submit"
-              className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+              className="bg-blue-950 text-white px-6 py-2 rounded hover:bg-blue-900 transition cursor-pointer"
             >
-              Submit Booking
+              Submit Booking Request
             </button>
           </form>
         </div>
