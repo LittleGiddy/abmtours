@@ -1,4 +1,4 @@
- import mongoose from "mongoose";
+import mongoose from "mongoose";
 
 const BookingSchema = new mongoose.Schema({
   firstName: String,
@@ -11,7 +11,6 @@ const BookingSchema = new mongoose.Schema({
   airportPickup: String,
   expectedDate: String,
   budget: String,
-  startDate: String,
   nights: String,
   adults: String,
   children: String,
