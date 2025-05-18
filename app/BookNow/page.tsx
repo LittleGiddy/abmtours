@@ -318,7 +318,7 @@ const BookNow = () => {
               ))}
             </select>
 
-            {["adults"].map((field) => (
+            {["adults", "children"].map((field) => (
               <select
                 key={field}
                 name={field}
@@ -336,23 +336,6 @@ const BookNow = () => {
                 <option value="More than 7">More than 7</option>
               </select>
             ))}
-
-            <select
-              name="children"
-              value={formData.children}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border rounded"
-            >
-              <option value="">Number of children</option>
-              <option value="0">None</option>
-              {[...Array(7).keys()].map((n) => (
-                <option key={n + 1} value={n + 1}>
-                  {n + 1}
-                </option>
-              ))}
-              <option value="More than 7">More than 7</option>
-            </select>
 
             <textarea
               name="additionalInfo"
@@ -404,4 +387,3 @@ const BookNow = () => {
 };
 
 export default BookNow;
-
