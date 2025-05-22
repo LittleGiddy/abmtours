@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { Disclosure } from "@headlessui/react";
+import { RxCross2 } from "react-icons/rx";
 import {
   MdOutlineLogout,
   MdOutlineLocationOn,
@@ -23,7 +24,11 @@ function SideNavbar() {
         <div>
           {/* Hamburger Button */}
           <Disclosure.Button className="absolute bg-amber-100 top-4 right-4 z-30 inline-flex items-center peer justify-center rounded-md p-2 text-gray-800 hover:bg-gray-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white group">
-            <GiHamburgerMenu className="block md:hidden h-6 w-6" aria-hidden="true" />
+            {open ? (
+              <RxCross2 className="block md:hidden h-6 w-6" aria-hidden="true" />
+            ) : (
+              <GiHamburgerMenu className="block md:hidden h-6 w-6" aria-hidden="true" />
+            )}
           </Disclosure.Button>
 
           {/* Sidebar */}
