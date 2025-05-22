@@ -88,14 +88,15 @@ export default function AdminBookingsPage() {
         />
         <button
           onClick={exportCSV}
-          className="bg-blue-950 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
+          className="bg-blue-950 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2 w-full sm:w-auto justify-center"
         >
-          <Download size={18} /> Export CSV
+          <Download size={18} /> <span>Export CSV</span>
         </button>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border">
+        {/* Desktop Table */}
+        <table className="hidden md:table min-w-full bg-white border">
           <thead className="bg-gray-100 text-left">
             <tr>
               <th className="px-4 py-2 border">Name</th>
@@ -117,7 +118,7 @@ export default function AdminBookingsPage() {
                 <td className="px-4 py-2 border">{booking.phone}</td>
                 <td className="px-4 py-2 border">{booking.travelType}</td>
                 <td className="px-4 py-2 border">{booking.expectedDate}</td>
-                <td className="px-4 py-2 border">{booking.budget}</td>
+                <td className="px-4 py-2 border">{booking.budget || 'N/A'}</td>
                 <td className="px-4 py-2 border text-red-600 cursor-pointer">
                   <button onClick={() => handleDelete(booking._id)}>
                     <Trash2 size={18} />
@@ -134,6 +135,36 @@ export default function AdminBookingsPage() {
             )}
           </tbody>
         </table>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden space-y-4">
+          {filteredBookings.length === 0 ? (
+            <div className="p-4 text-center">No bookings found.</div>
+          ) : (
+            filteredBookings.map((booking) => (
+              <div key={booking._id} className="border rounded-lg p-4 shadow-sm">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-medium">
+                    {booking.firstName} {booking.lastName}
+                  </h3>
+                  <button 
+                    onClick={() => handleDelete(booking._id)}
+                    className="text-red-600"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+                <div className="mt-2 space-y-1 text-sm">
+                  <p><span className="font-medium">Email:</span> {booking.email}</p>
+                  <p><span className="font-medium">Phone:</span> {booking.phone}</p>
+                  <p><span className="font-medium">Travel Type:</span> {booking.travelType}</p>
+                  <p><span className="font-medium">Date:</span> {booking.expectedDate}</p>
+                  <p><span className="font-medium">Budget:</span> {booking.budget || 'N/A'}</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
