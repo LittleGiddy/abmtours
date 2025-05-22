@@ -1,13 +1,22 @@
+'use client';
+
 import React from "react";
 import { FaStar } from "react-icons/fa";
 import ReviewSlider from "./ReviewSlider";
+import { motion } from "framer-motion";
 
 const Review = () => {
   return (
     <div className="pt-20 pb-20 flex items-center justify-center flex-col bg-blue-950">
       <div className="w-[80%] mx-auto grid items-center grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Text content */}
-        <div>
+        
+        {/* Animated Text Content */}
+        <motion.div
+          initial={{ x: -100, opacity: 0 }}
+          whileInView={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          viewport={{ once: true, amount: 0.3 }}
+        >
           <h1 className="text-2xl font-semibold text-white">
             What Do our Customers say about Us?
           </h1>
@@ -19,7 +28,6 @@ const Review = () => {
           </p>
 
           {/* Ratings */}
-
           <div className="mt-6 flex items-center space-x-6">
             <div>
               <p className="text-2xl font-bold text-white">4.88</p>
@@ -32,11 +40,18 @@ const Review = () => {
               </div>
             </div>
           </div>
-        </div>
-        {/* slider */}
-        <div className="overflow-hidden ">
+        </motion.div>
+
+        {/* Animated Review Slider */}
+        <motion.div
+          initial={{ x: 100, opacity: 0 }}
+          whileInView={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
+          viewport={{ once: true, amount: 0.3 }}
+          className="overflow-hidden"
+        >
           <ReviewSlider />
-        </div>
+        </motion.div>
       </div>
     </div>
   );
