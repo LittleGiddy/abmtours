@@ -106,7 +106,7 @@ const Gallery = () => {
           viewport={{ once: true }}
           className="text-center mt-16"
         >
-          <button className="px-8 py-3 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl">
+          <button className="px-8 py-3 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-950 transition-colors shadow-lg hover:shadow-xl">
             View More Memories
           </button>
         </motion.div>
