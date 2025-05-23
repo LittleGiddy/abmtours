@@ -2,6 +2,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useState } from "react";
 
 const galleryImages = [
   { id: 1, src: "/images/water.jpg", alt: "Wildlife Safari", category: "safari" },
@@ -15,6 +16,12 @@ const galleryImages = [
 ];
 
 const Gallery = () => {
+  const [activeImage, setActiveImage] = useState<number | null>(null);
+
+  const handleImagePress = (id: number) => {
+    setActiveImage(activeImage === id ? null : id);
+  };
+
   return (
     <section className="py-20 bg-gradient-to-b from-gray-100 to-white">
       <div className="container mx-auto px-4">
@@ -62,17 +69,25 @@ const Gallery = () => {
               transition={{ duration: 0.6 }}
               whileHover={{ scale: 1.02 }}
               className="break-inside-avoid relative group overflow-hidden rounded-xl shadow-lg"
+              onClick={() => handleImagePress(image.id)}
+              onTouchStart={() => handleImagePress(image.id)}
             >
               <Image
                 src={image.src}
                 alt={image.alt}
                 width={600}
                 height={400}
-                className="w-full h-auto transition-transform duration-500 group-hover:scale-110"
+                className={`w-full h-auto transition-transform duration-500 ${
+                  activeImage === image.id ? 'scale-110' : 'group-hover:scale-110'
+                }`}
               />
               {/* Overlay Effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+              <div className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent ${
+                activeImage === image.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              } transition-opacity duration-300 flex items-end p-6`}>
+                <div className={`${
+                  activeImage === image.id ? 'translate-y-0' : 'translate-y-4 group-hover:translate-y-0'
+                } transition-transform duration-300`}>
                   <h3 className="text-white text-xl font-bold">{image.alt}</h3>
                   <span className="inline-block mt-1 px-3 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full">
                     {image.category}
