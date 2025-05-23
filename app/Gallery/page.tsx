@@ -7,7 +7,7 @@ import { useState } from "react";
 const galleryImages = [
   { id: 1, src: "/images/water.jpg", alt: "Wildlife Safari", category: "safari" },
   { id: 2, src: "/images/water.jpg", alt: "Zanzibar Beach", category: "beach" },
-  { id: 3, src: "/images/water.jpg", alt: "Mount Kilimanjaro", category: "mountain" },
+  { id: 3, src: "/images/Kilimanjaro.jpeg", alt: "Mount Kilimanjaro", category: "mountain" },
   { id: 4, src: "/images/water.jpg", alt: "Maasai Culture", category: "culture" },
   { id: 5, src: "/images/water.jpg", alt: "Serengeti Sunset", category: "safari" },
   { id: 6, src: "/images/water.jpg", alt: "Pristine Waters", category: "beach" },
