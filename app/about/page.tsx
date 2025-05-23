@@ -87,7 +87,7 @@ const About = () => {
           ABM Tours and Safaris Ltd was officially registered on June 16, 2023,
           under BRELA with registration number 545389. The company was founded
           to promote domestic and international tourism while preserving and
-          showcasing Tanzania's rich cultural heritage.
+          showcasing Tanzania&apos;s rich cultural heritage.
         </motion.p>
       </motion.section>
 
@@ -124,7 +124,7 @@ const About = () => {
             <li>Historical and Heritage Tours – Visits to Bagamoyo, Zanzibar, Kilwa, and other UNESCO heritage sites</li>
             <li>Eco-Tourism and Sustainable Travel – Promoting responsible tourism to conserve nature and support local communities</li>
             <li>Research &amp; Documentation – Studies on African cultures, traditions, and indigenous heritage</li>
-            <li>Cultural Tourism – Engaging experiences with Tanzania's 120+ ethnic groups, including traditional music, food, language, and attire</li>
+            <li>Cultural Tourism – Engaging experiences with Tanzania&apos;s 120+ ethnic groups, including traditional music, food, language, and attire</li>
           </ul>
         </motion.div>
 
@@ -146,7 +146,7 @@ const About = () => {
           <ul className="list-disc list-inside space-y-2 text-lg text-gray-700">
             <li>Partnering with certified tour operators for safe transportation and accommodation</li>
             <li>Providing trained guides and first aid kits for all tours</li>
-            <li>Ensuring compliance with Tanzania's tourism safety regulations</li>
+            <li>Ensuring compliance with Tanzania&apos;s tourism safety regulations</li>
           </ul>
         </motion.div>
 
