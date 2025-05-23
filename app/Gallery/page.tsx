@@ -8,11 +8,11 @@ const galleryImages = [
   { id: 1, src: "/images/water.jpg", alt: "Wildlife Safari", category: "safari" },
   { id: 2, src: "/images/water.jpg", alt: "Zanzibar Beach", category: "beach" },
   { id: 3, src: "/images/Kilimanjaro.jpeg", alt: "Mount Kilimanjaro", category: "mountain" },
-  { id: 4, src: "/images/water.jpg", alt: "Maasai Culture", category: "culture" },
+  { id: 4, src: "/images/Maasai.jpg", alt: "Maasai Culture", category: "culture" },
   { id: 5, src: "/images/water.jpg", alt: "Serengeti Sunset", category: "safari" },
   { id: 6, src: "/images/water.jpg", alt: "Pristine Waters", category: "beach" },
   { id: 7, src: "/images/water.jpg", alt: "Kilimanjaro Trek", category: "mountain" },
-  { id: 8, src: "/images/water.jpg", alt: "Traditional Dance", category: "culture" },
+  { id: 8, src: "/images/Maasai.jpg", alt: "Traditional Dance", category: "culture" },
 ];
 
 const Gallery = () => {
