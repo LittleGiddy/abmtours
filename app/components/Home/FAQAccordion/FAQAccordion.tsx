@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { FaChevronDown } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 
 const faqs = [
   {
@@ -34,25 +35,58 @@ const FAQAccordion = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-blue-950 text-center mb-6">Frequently Asked Questions</h2>
+      <motion.h2 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+        className="text-3xl font-bold text-blue-950 text-center mb-6"
+      >
+        Frequently Asked Questions
+      </motion.h2>
       <div className="space-y-4">
         {faqs.map((faq, index) => (
-          <div key={index} className="border rounded-lg overflow-hidden">
-            <button
+          <motion.div 
+            key={index} 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            viewport={{ once: true }}
+            className="border rounded-lg overflow-hidden"
+          >
+            <motion.button
+              whileHover={{ backgroundColor: "#e5e7eb" }}
               className="w-full flex justify-between items-center p-6 bg-gray-200 text-left font-medium text-lg cursor-pointer"
               onClick={() => toggleAccordion(index)}
             >
               {faq.question}
-              <FaChevronDown className={`transform transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""}`} />
-            </button>
-            {openIndex === index && (
-              <div className="p-6 bg-white border-t text-gray-700 text-base">{faq.answer}</div>
-            )}
-          </div>
+              <motion.div
+                animate={{ rotate: openIndex === index ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <FaChevronDown />
+              </motion.div>
+            </motion.button>
+            <AnimatePresence>
+              {openIndex === index && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-6 bg-white border-t text-gray-700 text-base">
+                    {faq.answer}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         ))}
       </div>
     </div>
   );
 };
 
-export default FAQAccordion; 
+export default FAQAccordion;
