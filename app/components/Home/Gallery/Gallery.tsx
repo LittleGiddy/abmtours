@@ -28,7 +28,7 @@ const Gallery = () => {
         >
           <h2 className="text-4xl md:text-5xl font-bold text-blue-950 mb-4">Tanzania Through Our Lens</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore breathtaking moments from our adventures across Tanzania's most iconic landscapes.
+            Explore breathtaking moments from our adventures across Tanzania&apos;s most iconic landscapes.
           </p>
         </motion.div>
 
