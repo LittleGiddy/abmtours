@@ -4,14 +4,14 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 
 const galleryImages = [
-  { id: 1, src: "/gallery/safari1.jpg", alt: "Wildlife Safari", category: "safari" },
-  { id: 2, src: "/gallery/beach1.jpg", alt: "Zanzibar Beach", category: "beach" },
-  { id: 3, src: "/gallery/kili1.jpg", alt: "Mount Kilimanjaro", category: "mountain" },
-  { id: 4, src: "/gallery/culture1.jpg", alt: "Maasai Culture", category: "culture" },
-  { id: 5, src: "/gallery/safari2.jpg", alt: "Serengeti Sunset", category: "safari" },
-  { id: 6, src: "/gallery/beach2.jpg", alt: "Pristine Waters", category: "beach" },
-  { id: 7, src: "/gallery/kili2.jpg", alt: "Kilimanjaro Trek", category: "mountain" },
-  { id: 8, src: "/gallery/culture2.jpg", alt: "Traditional Dance", category: "culture" },
+  { id: 1, src: "/images/water.jpg", alt: "Wildlife Safari", category: "safari" },
+  { id: 2, src: "/images/water.jpg", alt: "Zanzibar Beach", category: "beach" },
+  { id: 3, src: "/images/water.jpg", alt: "Mount Kilimanjaro", category: "mountain" },
+  { id: 4, src: "/images/water.jpg", alt: "Maasai Culture", category: "culture" },
+  { id: 5, src: "/images/water.jpg", alt: "Serengeti Sunset", category: "safari" },
+  { id: 6, src: "/images/water.jpg", alt: "Pristine Waters", category: "beach" },
+  { id: 7, src: "/images/water.jpg", alt: "Kilimanjaro Trek", category: "mountain" },
+  { id: 8, src: "/images/water.jpg", alt: "Traditional Dance", category: "culture" },
 ];
 
 const Gallery = () => {
