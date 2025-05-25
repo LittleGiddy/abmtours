@@ -205,13 +205,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
-      {showFlash && (
-        <FlashMessage
-          message="Your booking request has been submitted successfully! We'll contact you soon."
-          onClose={() => setShowFlash(false)}
-        />
-      )}
-
       <section className="relative h-[60vh] flex items-center justify-center text-center text-white">
         <video
           autoPlay
