@@ -1,65 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
-
-const FlashMessage = ({ message, onClose }: { message: string; onClose: () => void }) => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onClose, 500);
-    }, 7000);
-
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div
-      className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ease-in-out ${
-        isVisible ? "opacity-100" : "opacity-0"
-      }`}
-    >
-      <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg flex items-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 mr-2 text-green-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 13l4 4L19 7"
-          />
-        </svg>
-        <span>{message}</span>
-        <button
-          onClick={() => {
-            setIsVisible(false);
-            setTimeout(onClose, 500);
-          }}
-          className="ml-4 text-green-500 hover:text-green-700"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-      </div>
-    </div>
-  );
-};
+import { useState } from "react";
 
 const BookNow = () => {
   const [formData, setFormData] = useState({
@@ -588,7 +528,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               </label>
             </div>
 
-            {/* Success Flash Message - Placed above the submit button */}
+            {/* Success Flash Message */}
             {showFlash && (
               <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
                 Your booking request has been submitted successfully! We&apos;ll contact you soon.
