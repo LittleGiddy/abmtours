@@ -13,10 +13,9 @@ import {
   MdOutlineTravelExplore,
   MdOutlineBookmarkBorder,
   MdSpaceDashboard,
-<<<<<<< HEAD
+
   MdOutlinePhotoLibrary, // Added icon for Gallery
-=======
->>>>>>> 87dcc80efaf64c44a6b6d6e9a3865bb7ea47fdc8
+
 } from "react-icons/md";
 import { BiMessageSquareDots } from "react-icons/bi";
 import { IoMdStarOutline } from "react-icons/io";
@@ -60,7 +59,7 @@ function SideNavbar() {
               {/* Navigation Items */}
               <div className="my-4 border-b border-gray-100 pb-4 w-full">
                 <MenuItem icon={<MdSpaceDashboard/>} label="Dashboard" path="/admin/Dashboard" />
-<<<<<<< HEAD
+
                 <MenuItem icon={<MdOutlineBookmarkBorder />} label="Bookings" path="#" />
                 <MenuItem icon={<IoMdStarOutline />} label="Popular Destinations" path="#" />
                 <MenuItem icon={<BiMessageSquareDots />} label="Messages" path="/admin/Messages" />
@@ -68,14 +67,14 @@ function SideNavbar() {
                 <MenuItem icon={<MdOutlineTravelExplore />} label="Tours and Safaris" path="#" />
                 <MenuItem icon={<MdOutlineLocationOn />} label="Destinations" path="#" />
                 <MenuItem icon={<MdOutlinePhotoLibrary />} label="Gallery" path="#" />
-=======
+
                 <MenuItem icon={<MdOutlineBookmarkBorder />} label="Bookings" path="/admin/Bookings" />
                 <MenuItem icon={<IoMdStarOutline />} label="Popular Destinations" path="/admin/popular" />
                 <MenuItem icon={<BiMessageSquareDots />} label="Messages" path="/admin/Messages" />
                 <MenuItem icon={<MdOutlineMapsHomeWork />} label="Desired Place" path="/admin/desired" />
                 <MenuItem icon={<MdOutlineTravelExplore />} label="Tours and Safaris" path="/admin/tours" />
                 <MenuItem icon={<MdOutlineLocationOn />} label="Destinations" path="/admin/destinations" />
->>>>>>> 87dcc80efaf64c44a6b6d6e9a3865bb7ea47fdc8
+
               </div>
 
               {/* Logout */}
@@ -117,7 +116,6 @@ const MenuItem = ({ icon, label, path, extraClasses = "" }) => {
 };
 
 export default SideNavbar;
-<<<<<<< HEAD
 
-=======
->>>>>>> 87dcc80efaf64c44a6b6d6e9a3865bb7ea47fdc8
+
+
