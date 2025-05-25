@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const BookNow = () => {
   const [formData, setFormData] = useState({
@@ -25,6 +25,28 @@ const BookNow = () => {
   const [showFlash, setShowFlash] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-hide flash message after 5 seconds
+  useEffect(() => {
+    if (showFlash) {
+      const timer = setTimeout(() => {
+        setShowFlash(false);
+      }, 5000); // 5 seconds
+      
+      return () => clearTimeout(timer); // Cleanup on unmount or when showFlash changes
+    }
+  }, [showFlash]);
+
+  // Auto-hide error message after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000); // 5 seconds
+      
+      return () => clearTimeout(timer); // Cleanup
+    }
+  }, [error]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -174,8 +196,16 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             Tell us your travel plans, and we will be in touch within 24 hours.
           </p>
 
+          {/* Success Flash Message */}
+          {showFlash && (
+            <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg transition-opacity duration-500">
+              Your booking request has been submitted successfully! We&apos;ll contact you soon.
+            </div>
+          )}
+
+          {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg transition-opacity duration-500">
               {error}
             </div>
           )}
@@ -527,20 +557,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 </span>
               </label>
             </div>
-
-            {/* Success Flash Message */}
-            {showFlash && (
-              <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                Your booking request has been submitted successfully! We&apos;ll contact you soon.
-              </div>
-            )}
-
-            {/* Error Message */}
-            {error && (
-              <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                {error}
-              </div>
-            )}
 
             {/* Submit Button */}
             <button
