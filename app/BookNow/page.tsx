@@ -598,7 +598,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             {/* Success Flash Message - Placed above the submit button */}
             {showFlash && (
               <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                Your booking request has been submitted successfully! We'll contact you soon.
+                Your booking request has been submitted successfully! We&apos;ll contact you soon.
               </div>
             )}
 
