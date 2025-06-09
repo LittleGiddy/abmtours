@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "abmtours.co.tz"
+        }
+      ],
+      "destination": "https://www.abmtours.co.tz/:1",
+      "permanent": true
+    }
+  ]
+}
