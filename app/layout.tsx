@@ -15,7 +15,11 @@ export const metadata: Metadata = {
   icons: {
     icon: "/ABMTRANS-01.png",
   },
+  other: {
+    "google-adsense-account": "ca-pub-4730115642307104",
+  },
 };
+
 
 export default function RootLayout({
   children,
