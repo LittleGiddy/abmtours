@@ -68,12 +68,6 @@ function SideNavbar() {
                 <MenuItem icon={<MdOutlineLocationOn />} label="Destinations" path="#" />
                 <MenuItem icon={<MdOutlinePhotoLibrary />} label="Gallery" path="#" />
 
-                <MenuItem icon={<MdOutlineBookmarkBorder />} label="Bookings" path="/admin/Bookings" />
-                <MenuItem icon={<IoMdStarOutline />} label="Popular Destinations" path="/admin/popular" />
-                <MenuItem icon={<BiMessageSquareDots />} label="Messages" path="/admin/Messages" />
-                <MenuItem icon={<MdOutlineMapsHomeWork />} label="Desired Place" path="/admin/desired" />
-                <MenuItem icon={<MdOutlineTravelExplore />} label="Tours and Safaris" path="/admin/tours" />
-                <MenuItem icon={<MdOutlineLocationOn />} label="Destinations" path="/admin/destinations" />
 
               </div>
 
