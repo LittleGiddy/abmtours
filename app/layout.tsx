@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./components/ClientLayout";
 import TidioScript from "./components/TidioScript/TidioScript";
+import AdSenseScript from "./components/AdSenseScript"; // ✅ import this
 
 const font = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -15,11 +16,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/ABMTRANS-01.png",
   },
-  other: {
-    "google-adsense-account": "ca-pub-4730115642307104",
-  },
 };
-
 
 export default function RootLayout({
   children,
@@ -28,15 +25,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" style={{ colorScheme: "light" }}>
-      <head>
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4730115642307104"
-          crossOrigin="anonymous"
-        ></script>
-      </head>
       <body className={`${font.className} antialiased flex flex-col min-h-screen bg-white text-black`}>
         <TidioScript />
+        <AdSenseScript /> {/* ✅ This inserts the script tag in <head> */}
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
