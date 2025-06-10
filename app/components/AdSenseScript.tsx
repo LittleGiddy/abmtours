@@ -1,14 +1,15 @@
 "use client";
-import Head from "next/head";
+
+import { useEffect } from "react";
 
 export default function AdSenseScript() {
-  return (
-    <Head>
-      <script
-        async
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4730115642307104"
-        crossOrigin="anonymous"
-      ></script>
-    </Head>
-  );
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4730115642307104";
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    document.head.appendChild(script);
+  }, []);
+
+  return null;
 }
