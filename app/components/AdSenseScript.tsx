@@ -1,3 +1,5 @@
+// app/components/AdSenseHeadScript.tsx
+"use client";
 import Script from "next/script";
 
 export default function AdSenseHeadScript() {
@@ -8,17 +10,12 @@ export default function AdSenseHeadScript() {
         strategy="afterInteractive"
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4730115642307104"
         crossOrigin="anonymous"
-        onError={(e) => {
-          console.error("AdSense script failed to load", e);
-        }}
       />
       <Script
         id="adsbygoogle-config"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
-          __html: `
-            (adsbygoogle = window.adsbygoogle || []).push({});
-          `,
+          __html: `(adsbygoogle = window.adsbygoogle || []).push({});`,
         }}
       />
     </>
