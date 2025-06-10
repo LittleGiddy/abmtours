@@ -3,7 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./components/ClientLayout";
 import TidioScript from "./components/TidioScript/TidioScript";
-import AdSenseScript from "./components/AdSenseScript"; // ✅ Import AdSenseScript
+import AdSenseHeadScript from "./components/AdSenseHeadScript";
 
 const font = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -25,9 +25,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" style={{ colorScheme: "light" }}>
+      <head>
+        <AdSenseHeadScript />
+      </head>
       <body className={`${font.className} antialiased flex flex-col min-h-screen bg-white text-black`}>
         <TidioScript />
-        <AdSenseScript /> {/* ✅ This loads AdSense script in <head> dynamically */}
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
