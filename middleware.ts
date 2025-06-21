@@ -1,32 +1,37 @@
-// middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-// Set this to true to enable maintenance mode
-const MAINTENANCE_MODE = true;
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Maintenance mode check - show for all non-admin paths
-  if (MAINTENANCE_MODE && !request.nextUrl.pathname.startsWith('/admin')) {
-    return NextResponse.rewrite(new URL('/maintenance', request.url));
+  // Maintenance mode example (fixed)
+  if (process.env.MAINTENANCE_MODE === 'true') {
+    if (!request.nextUrl.pathname.startsWith('/maintenance')) {
+      return NextResponse.rewrite(new URL('/maintenance', request.url))
+    }
+    return NextResponse.next()
   }
 
-  // Existing admin auth logic
-  const isLoggedIn = request.cookies.get('admin-auth')?.value === 'true';
-  const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
+  // Admin auth example (fixed)
+  const isLoggedIn = request.cookies.get('admin-auth')?.value === 'true'
+  const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
 
   if (isAdminPath && !isLoggedIn) {
-    return NextResponse.redirect(new URL('/admin-login/login', request.url));
+    // Fixed redirect - no dynamic segments in destination
+    return NextResponse.redirect(new URL('/admin-login', request.url))
   }
 
-  return NextResponse.next();
+  return NextResponse.next()
 }
 
 export const config = {
-  // Matcher excludes:
-  // - API routes
-  // - Static files
-  // - Next.js internals
-  // - The maintenance page itself
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|maintenance|.*\\.).*)'],
-};
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - maintenance (maintenance page)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|maintenance).*)',
+  ],
+}
