@@ -23,6 +23,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Remove the matcher to run on all routes, or keep it if you only want to affect admin paths
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|maintenance).*)'],
+  // Matcher excludes:
+  // - API routes
+  // - Static files
+  // - Next.js internals
+  // - The maintenance page itself
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|maintenance|.*\\.).*)'],
 };
