@@ -2,20 +2,32 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Maintenance mode example (fixed)
+  const { pathname } = request.nextUrl
+
+  /*
+   * ============================================
+   * DOMAIN SUBSCRIPTION EXPIRED MODE
+   * ============================================
+   */
   if (process.env.MAINTENANCE_MODE === 'true') {
-    if (!request.nextUrl.pathname.startsWith('/maintenance')) {
-      return NextResponse.rewrite(new URL('/maintenance', request.url))
+    // Allow maintenance page itself
+    if (pathname.startsWith('/maintenance')) {
+      return NextResponse.next()
     }
-    return NextResponse.next()
+
+    // Rewrite everything else to maintenance page
+    return NextResponse.rewrite(new URL('/maintenance', request.url))
   }
 
-  // Admin auth example (fixed)
+  /*
+   * ============================================
+   * ADMIN AUTH PROTECTION
+   * ============================================
+   */
   const isLoggedIn = request.cookies.get('admin-auth')?.value === 'true'
-  const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
+  const isAdminPath = pathname.startsWith('/admin')
 
   if (isAdminPath && !isLoggedIn) {
-    // Fixed redirect - no dynamic segments in destination
     return NextResponse.redirect(new URL('/admin-login', request.url))
   }
 
@@ -25,12 +37,12 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - maintenance (maintenance page)
+     * Match all paths except:
+     * - api routes
+     * - Next.js static files
+     * - image optimization
+     * - favicon
+     * - maintenance page
      */
     '/((?!api|_next/static|_next/image|favicon.ico|maintenance).*)',
   ],
