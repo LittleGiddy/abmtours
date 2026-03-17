@@ -128,14 +128,14 @@ const ContactUs = () => {
                 </a>
               </div>
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.726367996198!2d39.25415101535452!3d-6.792354095092241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x185c4c59c9999999%3A0x1eea82db00000000!2sDar%20es%20Salaam!5e0!3m2!1sen!2stz!4v1610000000000!5m2!1sen!2stz"
-                width="100%"
-                height="60%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1980.683649805328!2d39.353816500002964!3d-6.846496813657228!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x185db57a8e351339%3A0x648f30a6de75ffb!2sDar%20es%20Salaam!5e0!3m2!1sen!2stz!4v1773760721189!5m2!1sen!2stz"
+  width="100%"
+  height="60%"
+  style={{ border: 0 }}
+  allowFullScreen
+  loading="lazy"
+  referrerPolicy="no-referrer-when-downgrade"
+/>
             </div>
 
             {/* Contact Form */}

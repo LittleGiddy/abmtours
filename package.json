@@ -33,9 +33,7 @@
     "mongoose": "^8.13.2",
     "next": "^15.4.0",
     "next-auth": "^4.24.11",
-
     "nodemailer": "^6.10.1",
-
     "papa": "^0.0.0",
     "papaparse": "^5.5.2",
     "react": "^19.0.0",
@@ -59,6 +57,7 @@
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
     "daisyui": "^5.0.9",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
     "eslint-config-prettier": "^10.1.1",

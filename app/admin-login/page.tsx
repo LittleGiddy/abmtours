@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginAdmin } from "./action";
+import { loginAdmin } from "./login/action";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
