@@ -36,7 +36,7 @@
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="/admin/Bookings" 
+            <a href="https://abmtours.co.tz/admin/Bookings" 
               style="background-color: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
               View Booking Details
             </a>
