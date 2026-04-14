@@ -3,7 +3,6 @@ import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
   try {
-    // Verify content type
     const contentType = request.headers.get('content-type');
     if (!contentType?.includes('application/json')) {
       return NextResponse.json(
@@ -14,22 +13,12 @@ export async function POST(request: Request) {
 
     const formData = await request.json();
 
-    // Validate required fields
     if (!formData.firstName || !formData.email) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
-
-    // Log SMTP configuration (without password)
-    console.log('SMTP Config Check:', {
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      user: process.env.EMAIL_USER,
-      adminEmail: process.env.ADMIN_EMAIL,
-      hasPassword: !!process.env.EMAIL_PASSWORD,
-    });
 
     // Format email content
     const emailHtml = `
@@ -62,58 +51,52 @@ export async function POST(request: Request) {
       </div>
     `;
 
-    // Create transporter with better configuration
+    // DIRECTADMIN SMTP CONFIGURATION
+    // Use port 465 with SSL (port 587 with STARTTLS also works but 465 is more reliable)
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true', // Use true for port 465, false for 587
+      port: 465,                    // Standard DirectAdmin SSL port
+      secure: true,                 // Required for port 465
       auth: {
-        user: process.env.EMAIL_USER,
+        user: process.env.EMAIL_USER,      // Must be full email address
         pass: process.env.EMAIL_PASSWORD,
       },
       tls: {
-        rejectUnauthorized: false, // Only for development
+        rejectUnauthorized: false,         // Accept self-signed certificates
+        minVersion: 'TLSv1.2',             // DirectAdmin requires TLS 1.2+
       },
-      // Add connection timeout
-      connectionTimeout: 10000,
+      connectionTimeout: 30000,
+      greetingTimeout: 30000,
+      socketTimeout: 30000,
     });
 
-    // Verify connection configuration
+    // Verify connection before sending
     await transporter.verify();
     console.log('SMTP connection verified successfully');
 
-    // Define email options
     const mailOptions = {
       from: `"ABM Tours" <${process.env.EMAIL_USER}>`,
       to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
       subject: `New Booking Request from ${formData.firstName} ${formData.lastName}`,
       html: emailHtml,
-      // Add text version as fallback
       text: `New booking request from ${formData.firstName} ${formData.lastName}. Email: ${formData.email}`,
     };
 
-    // Send the email
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.messageId);
+    console.log('Email sent:', info.messageId);
 
     return NextResponse.json(
-      { success: true, message: 'Email notification sent successfully', messageId: info.messageId },
+      { success: true, message: 'Email notification sent successfully' },
       { status: 200 }
     );
 
   } catch (error: unknown) {
-    console.error('Email error details:', error);
+    console.error('Email error:', error);
     
-    // Return detailed error for debugging
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorCode = error instanceof Error && 'code' in error ? error.code : null;
+    const errorMessage = error instanceof Error ? error.message : 'Failed to send email';
     
     return NextResponse.json(
-      { 
-        error: 'Failed to send email notification', 
-        details: errorMessage,
-        code: errorCode 
-      },
+      { error: errorMessage },
       { status: 500 }
     );
   }
