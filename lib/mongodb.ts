@@ -1,45 +1,39 @@
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
 if (!uri) {
   throw new Error(
-    '❌ Please define MONGODB_URI environment variable in .env.local\n' +
-    'Example: MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/abmtours'
+    '❌ MongoDB URI is not set in environment variables.\n' +
+    'Please add MONGODB_URI to your .env.local file'
   );
 }
 
 const options = {
-  connectTimeoutMS: 30000,
+  connectTimeoutMS: 10000,
   socketTimeoutMS: 45000,
-  serverSelectionTimeoutMS: 30000,
-  // Add these for better connection handling
-  retryWrites: true,
-  retryReads: true,
 };
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-declare global {
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
-}
+// Use a type declaration for global
+declare const global: typeof globalThis & {
+  _mongoClientPromise?: Promise<MongoClient>;
+};
 
 if (process.env.NODE_ENV === 'development') {
+  // In development, use a global variable so the connection
+  // is preserved across module reloads caused by HMR
   if (!global._mongoClientPromise) {
     client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect().catch(err => {
-      console.error('❌ MongoDB connection failed:', err);
-      throw err;
-    });
+    global._mongoClientPromise = client.connect();
   }
   clientPromise = global._mongoClientPromise;
 } else {
+  // In production, create a new connection
   client = new MongoClient(uri, options);
-  clientPromise = client.connect().catch(err => {
-    console.error('❌ MongoDB connection failed:', err);
-    throw err;
-  });
+  clientPromise = client.connect();
 }
 
 export default clientPromise;

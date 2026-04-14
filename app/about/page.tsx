@@ -14,10 +14,7 @@ import {
   Compass,
   Heart,
   Star,
-  MapPin,
   Clock,
-  Phone,
-  Mail,
   Instagram,
   Facebook,
   Twitter,
@@ -25,16 +22,9 @@ import {
   CheckCircle,
   Briefcase,
   Trophy,
-  Leaf,
-  Coffee,
-  Sun,
   Mountain,
   Trees,
   Waves,
-  Utensils,
-  Hotel,
-  Car,
-  Ship
 } from "lucide-react";
 
 // Animation variants
@@ -181,7 +171,7 @@ const About = () => {
           </motion.p>
           <motion.p variants={item} className="text-xl max-w-4xl mx-auto leading-relaxed mt-6">
             For more than three decades, we have built our reputation through personalized service, experienced guides, 
-            and deep knowledge of Tanzania's national parks and coastal destinations.
+            and deep knowledge of Tanzania&apos;s national parks and coastal destinations.
           </motion.p>
           <motion.p variants={item} className="text-xl max-w-4xl mx-auto leading-relaxed mt-6 font-semibold">
             Today, ABM Tours & Safaris continues to expand while maintaining its core values: authenticity, reliability, 
@@ -490,7 +480,7 @@ const About = () => {
           {[
             { icon: Trees, title: "Luxury Serengeti Migration Safaris", desc: "Witness the greatest wildlife spectacle on earth" },
             { icon: Waves, title: "Zanzibar Honeymoon Packages", desc: "Romantic escapes in paradise" },
-            { icon: Mountain, title: "Kilimanjaro Climbing Expeditions", desc: "Conquer Africa's highest peak" },
+            { icon: Mountain, title: "Kilimanjaro Climbing Expeditions", desc: "Conquer Africa&apos;s highest peak" },
             { icon: Star, title: "Private VIP Safari Experiences", desc: "Exclusive luxury adventures" },
             { icon: Users, title: "Group Tours & Corporate Travel", desc: "Seamless group experiences" },
             { icon: Heart, title: "Cultural Heritage Tours", desc: "Immersive local encounters" },
