@@ -43,8 +43,8 @@ const Review = () => {
               
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-yellow-400/20 flex items-center justify-center">
-                    <FaStar className="text-yellow-400 text-xl" />
+                  <div className="w-12 h-12 rounded-full bg-orange-600/20 flex items-center justify-center">
+                    <FaStar className="text-orange-600 text-xl" />
                   </div>
                   <div>
                     <p className="text-white font-semibold">4.9 Average Rating</p>
