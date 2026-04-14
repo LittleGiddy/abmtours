@@ -602,7 +602,7 @@ const BookNow = () => {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="px-8 py-3 bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold ml-auto"
+                    className="px-8 py-3 bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold ml-auto cursor-pointer"
                   >
                     Next →
                   </button>
