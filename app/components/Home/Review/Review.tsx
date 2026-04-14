@@ -47,7 +47,7 @@ const Review = () => {
                     <FaStar className="text-orange-600 text-xl" />
                   </div>
                   <div>
-                    <p className="text-white font-semibold">4.9 Average Rating</p>
+                    <p className="text-white font-semibold">4.8 Average Rating</p>
                     <p className="text-white/70 text-sm">Based on hundreds of reviews</p>
                   </div>
                 </div>
