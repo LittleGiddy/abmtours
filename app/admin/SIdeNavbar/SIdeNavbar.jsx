@@ -60,7 +60,7 @@ function SideNavbar() {
               <div className="my-4 border-b border-gray-100 pb-4 w-full">
                 <MenuItem icon={<MdSpaceDashboard/>} label="Dashboard" path="/admin/Dashboard" />
 
-                <MenuItem icon={<MdOutlineBookmarkBorder />} label="Bookings" path="#" />
+                <MenuItem icon={<MdOutlineBookmarkBorder />} label="Bookings" path="/admin/Bookings" />
                 <MenuItem icon={<IoMdStarOutline />} label="Popular Destinations" path="#" />
                 <MenuItem icon={<BiMessageSquareDots />} label="Messages" path="/admin/Messages" />
                 <MenuItem icon={<MdOutlineMapsHomeWork />} label="Desired Place" path="#" />
