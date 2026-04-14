@@ -2,19 +2,6 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-// GET: Fetch all bookings
-export async function GET() {
-  try {
-    const client = await clientPromise;
-    const db = client.db('abmtours');
-    const bookings = await db.collection('bookings').find().toArray();
-    return NextResponse.json(bookings);
-  } catch (error) {
-    console.error('Fetch bookings error:', error);
-    return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 });
-  }
-}
-
 // POST: Save a new booking
 export async function POST(request: Request) {
   try {
@@ -40,25 +27,35 @@ export async function POST(request: Request) {
       agreeToInfo = false,
     } = body;
 
-    // Required fields validation
-    const requiredFields = [
-      firstName,
-      lastName,
-      email,
-      phone,
-      travelType,
-      accommodation,
-      airportPickup,
-      expectedDate,
-      budget,
-      nights,
-      adults,
-      agreeToInfo,
-    ];
+    // Required fields validation - FIXED for boolean values
+    const missingFields = [];
+    
+    if (!firstName) missingFields.push('firstName');
+    if (!lastName) missingFields.push('lastName');
+    if (!email) missingFields.push('email');
+    if (!phone) missingFields.push('phone');
+    if (!travelType) missingFields.push('travelType');
+    if (!accommodation) missingFields.push('accommodation');
+    if (!airportPickup) missingFields.push('airportPickup');
+    if (!expectedDate) missingFields.push('expectedDate');
+    if (!budget) missingFields.push('budget');
+    if (!nights) missingFields.push('nights');
+    if (!adults) missingFields.push('adults');
+    // For boolean fields, check if they're defined (they can be false)
+    if (typeof agreeToInfo !== 'boolean') missingFields.push('agreeToInfo');
+    if (typeof agreeToTerms !== 'boolean') missingFields.push('agreeToTerms');
 
-    if (requiredFields.some(field => !field)) {
+    if (missingFields.length > 0) {
       return NextResponse.json(
-        { error: 'Missing required fields' }, 
+        { error: `Missing required fields: ${missingFields.join(', ')}` }, 
+        { status: 400 }
+      );
+    }
+
+    // Additional validation
+    if (!email.includes('@')) {
+      return NextResponse.json(
+        { error: 'Invalid email format' }, 
         { status: 400 }
       );
     }
@@ -76,10 +73,10 @@ export async function POST(request: Request) {
       accommodation,
       airportPickup,
       expectedDate,
-      budget,
-      nights,
-      adults,
-      children: children || "0",
+      budget: Number(budget), // Ensure budget is stored as number
+      nights: Number(nights), // Ensure nights is stored as number
+      adults: Number(adults), // Ensure adults is stored as number
+      children: children ? Number(children) : 0, // Ensure children is stored as number
       destinations,
       additionalInfo,
       agreeToTerms,
@@ -91,45 +88,12 @@ export async function POST(request: Request) {
       { message: 'Booking saved successfully!', id: result.insertedId },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('MongoDB insert error:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' }, 
-      { status: 500 }
-    );
-  }
+ // Option 1: Type assertion (simplest)
+} catch (error) {
+  console.error('MongoDB insert error:', error);
+  return NextResponse.json(
+    { error: error instanceof Error ? error.message : 'Internal Server Error' }, 
+    { status: 500 }
+  );
 }
-
-// DELETE: Remove a booking by ID from query params
-export async function DELETE(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
-
-  if (!id || !ObjectId.isValid(id)) {
-    return NextResponse.json(
-      { error: 'Invalid or missing booking ID' }, 
-      { status: 400 }
-    );
-  }
-
-  try {
-    const client = await clientPromise;
-    const db = client.db('abmtours');
-    const result = await db.collection('bookings').deleteOne({ _id: new ObjectId(id) });
-
-    if (result.deletedCount === 1) {
-      return NextResponse.json({ message: 'Booking deleted' });
-    } else {
-      return NextResponse.json(
-        { error: 'Booking not found' }, 
-        { status: 404 }
-      );
-    }
-  } catch (error) {
-    console.error('Delete error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete booking' }, 
-      { status: 500 }
-    );
-  }
 }
