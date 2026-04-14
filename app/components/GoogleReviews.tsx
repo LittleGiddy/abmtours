@@ -53,14 +53,14 @@ const GoogleReviews = () => {
     const hasHalfStar = rating % 1 !== 0;
 
     for (let i = 0; i < fullStars; i++) {
-      stars.push(<FaStar key={i} className="text-yellow-400" />);
+      stars.push(<FaStar key={i} className="text-orange-600" />);
     }
     if (hasHalfStar) {
-      stars.push(<FaStarHalfAlt key="half" className="text-yellow-400" />);
+      stars.push(<FaStarHalfAlt key="half" className="text-orange-600" />);
     }
     const remainingStars = 5 - Math.ceil(rating);
     for (let i = 0; i < remainingStars; i++) {
-      stars.push(<FaRegStar key={`empty-${i}`} className="text-yellow-400" />);
+      stars.push(<FaRegStar key={`empty-${i}`} className="text-orange-600" />);
     }
     return stars;
   };
@@ -153,7 +153,7 @@ const GoogleReviews = () => {
         )}
         
         {error && (
-          <div className="text-center text-yellow-400 py-8">
+          <div className="text-center text-orange-600 py-8">
             <p>{error}</p>
           </div>
         )}
