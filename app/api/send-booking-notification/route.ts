@@ -20,7 +20,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Format email content
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 5px;">
         <h1 style="color: #1e3a8a; text-align: center;">New Booking Request</h1>
@@ -51,39 +50,36 @@ export async function POST(request: Request) {
       </div>
     `;
 
-    // DIRECTADMIN SMTP CONFIGURATION
-    // Use port 465 with SSL (port 587 with STARTTLS also works but 465 is more reliable)
+    // Use port 587 with STARTTLS instead of SSL
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: 465,                    // Standard DirectAdmin SSL port
-      secure: true,                 // Required for port 465
+      port: 587,                    // Use 587 instead of 465
+      secure: false,                // false for STARTTLS
       auth: {
-        user: process.env.EMAIL_USER,      // Must be full email address
+        user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
       tls: {
-        rejectUnauthorized: false,         // Accept self-signed certificates
-        minVersion: 'TLSv1.2',             // DirectAdmin requires TLS 1.2+
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3',
       },
+      requireTLS: true,             // Force TLS
       connectionTimeout: 30000,
-      greetingTimeout: 30000,
-      socketTimeout: 30000,
     });
 
-    // Verify connection before sending
+    // Verify connection
     await transporter.verify();
-    console.log('SMTP connection verified successfully');
+    console.log('SMTP connection verified');
 
     const mailOptions = {
       from: `"ABM Tours" <${process.env.EMAIL_USER}>`,
       to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
       subject: `New Booking Request from ${formData.firstName} ${formData.lastName}`,
       html: emailHtml,
-      text: `New booking request from ${formData.firstName} ${formData.lastName}. Email: ${formData.email}`,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
 
     return NextResponse.json(
       { success: true, message: 'Email notification sent successfully' },
@@ -92,11 +88,8 @@ export async function POST(request: Request) {
 
   } catch (error: unknown) {
     console.error('Email error:', error);
-    
-    const errorMessage = error instanceof Error ? error.message : 'Failed to send email';
-    
     return NextResponse.json(
-      { error: errorMessage },
+      { error: error instanceof Error ? error.message : 'Failed to send email' },
       { status: 500 }
     );
   }
