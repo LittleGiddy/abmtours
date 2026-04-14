@@ -77,7 +77,7 @@ export default function Footer() {
                 <FaInstagram size={24} />
               </a>
               <a
-                href="https://tiktok.com/@abmtoursandsafarisltd"
+                href="https://www.tiktok.com/@abm.tours.and.safarisltd?_r=1&_t=ZS-95WoVNWbBbx"
                 className="text-gray-400 hover:text-white"
               >
                 <FaTiktok size={24} />
