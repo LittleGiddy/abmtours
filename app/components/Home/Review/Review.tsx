@@ -37,7 +37,7 @@ const Review = () => {
               </h2>
               <p className="text-white/90 leading-relaxed mb-6">
                 Our safari experiences are crafted with care, ensuring every guest 
-                leaves with unforgettable memories of Tanzania's breathtaking wildlife 
+                leaves with unforgettable memories of Tanzania&apos;s breathtaking wildlife 
                 and landscapes.
               </p>
               
