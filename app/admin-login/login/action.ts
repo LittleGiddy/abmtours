@@ -5,27 +5,52 @@ import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 
 export async function loginAdmin({ email, password }: { email: string; password: string }) {
-  const client = await clientPromise;
-  const db = client.db();
-  const admin = await db.collection('admins').findOne({ email });
+  try {
+    const client = await clientPromise;
+    // Specify the database name - make sure it matches your bookings API
+    const db = client.db('abmtours'); // Changed from db() to db('abmtours')
+    const admin = await db.collection('admins').findOne({ email });
 
-  if (!admin) {
-    return { success: false, message: 'Admin not found' };
+    if (!admin) {
+      return { success: false, message: 'Admin not found' };
+    }
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+
+    if (!isMatch) {
+      return { success: false, message: 'Incorrect password' };
+    }
+
+    // ✅ Await cookies() before using set()
+    const cookieStore = await cookies();
+    cookieStore.set('admin-auth', 'true', {
+      httpOnly: true,
+      path: '/',
+      maxAge: 60 * 60 * 24, // 1 day
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    return { success: true, message: 'Login successful' };
+  } catch (error) {
+    console.error('Login error:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Login failed' 
+    };
   }
+}
 
-  const isMatch = await bcrypt.compare(password, admin.password);
-
-  if (!isMatch) {
-    return { success: false, message: 'Incorrect password' };
-  }
-
-  // ✅ Await cookies() before using set()
+// Optional: Add a logout function
+export async function logoutAdmin() {
   const cookieStore = await cookies();
-  cookieStore.set('admin-auth', 'true', {
-    httpOnly: true,
-    path: '/',
-    maxAge: 60 * 60 * 24, // 1 day
-  });
+  cookieStore.delete('admin-auth');
+  return { success: true };
+}
 
-  return { success: true, message: 'Login successful' };
+// Optional: Add a function to check if admin is logged in
+export async function isAdminAuthenticated() {
+  const cookieStore = await cookies();
+  const authCookie = cookieStore.get('admin-auth');
+  return authCookie?.value === 'true';
 }
