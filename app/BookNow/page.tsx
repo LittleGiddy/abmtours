@@ -234,7 +234,7 @@ const BookNow = () => {
                   </div>
                   <div>
                     <p className="font-semibold">Booking Request Submitted Successfully!</p>
-                    <p className="text-sm">We'll contact you within 24 hours to confirm your safari adventure.</p>
+                    <p className="text-sm">We&apos;ll contact you within 24 hours to confirm your safari adventure.</p>
                   </div>
                 </div>
               </div>
