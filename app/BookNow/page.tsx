@@ -963,11 +963,13 @@ const BookNow = () => {
 
               
             </div>
-            <AdsterraBanner />
+            
           </div>
         </div>
       </div>
+      <AdsterraBanner />
     </div>
+    
   );
 };
 
