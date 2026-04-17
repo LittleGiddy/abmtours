@@ -1,6 +1,10 @@
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';  // ⚠️ Add this import
+import { ObjectId } from 'mongodb';
 
 export async function GET() {
   try {
@@ -42,16 +46,11 @@ export async function POST(request: Request) {
   }
 }
 
-// ✅ ADD THIS DELETE METHOD
 export async function DELETE(request: Request) {
   try {
-    // Get the ID from the URL query parameter
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     
-    console.log('Deleting booking with ID:', id);
-    
-    // Check if ID is provided
     if (!id) {
       return NextResponse.json(
         { error: 'Booking ID is required' },
@@ -59,7 +58,6 @@ export async function DELETE(request: Request) {
       );
     }
     
-    // Validate if the ID is a valid MongoDB ObjectId
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid booking ID format' },
@@ -70,12 +68,10 @@ export async function DELETE(request: Request) {
     const client = await clientPromise;
     const db = client.db('abmtours');
     
-    // Delete the booking
     const result = await db.collection('bookings').deleteOne({
       _id: new ObjectId(id)
     });
     
-    // Check if a document was actually deleted
     if (result.deletedCount === 0) {
       return NextResponse.json(
         { error: 'Booking not found' },
