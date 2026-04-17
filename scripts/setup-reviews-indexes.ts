@@ -1,8 +1,8 @@
-import clientPromise from '@/lib/mongodb';
+import {getClientPromise} from '@/lib/mongodb';
 
 async function setupReviewsIndexes() {
   try {
-    const client = await clientPromise;
+    const client = await getClientPromise();
     const db = client.db('abmtours');
     const collection = db.collection('reviews');
     
