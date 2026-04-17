@@ -4,26 +4,54 @@ import { Calendar, Users, Plane, Hotel, MapPin, Phone, Mail, User, CreditCard, C
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
 
+// Define proper types
+interface FormDataType {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  travelType: string;
+  tripEnhancements: string[];
+  accommodation: string;
+  airportPickup: string;
+  expectedDate: string;
+  nights: string;
+  budget: string;
+  adults: string;
+  children: string;
+  destinations: string[];
+  additionalInfo: string;
+  agreeToTerms: boolean;
+  agreeToInfo: boolean;
+}
+
+interface FieldErrors {
+  [key: string]: string;
+}
+
+interface TouchedFields {
+  [key: string]: boolean;
+}
+
 // Validation helper functions
-const validateField = (name: string, value: any): string => {
+const validateField = (name: string, value: string | boolean): string => {
   switch (name) {
     case 'firstName':
-      if (!value || !value.trim()) return "First name is required";
-      if (value.trim().length < 2) return "First name must be at least 2 characters";
+      if (!value || (typeof value === 'string' && !value.trim())) return "First name is required";
+      if (typeof value === 'string' && value.trim().length < 2) return "First name must be at least 2 characters";
       return "";
     case 'lastName':
-      if (!value || !value.trim()) return "Last name is required";
-      if (value.trim().length < 2) return "Last name must be at least 2 characters";
+      if (!value || (typeof value === 'string' && !value.trim())) return "Last name is required";
+      if (typeof value === 'string' && value.trim().length < 2) return "Last name must be at least 2 characters";
       return "";
     case 'email':
-      if (!value || !value.trim()) return "Email is required";
+      if (!value || (typeof value === 'string' && !value.trim())) return "Email is required";
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(value)) return "Please enter a valid email address";
+      if (typeof value === 'string' && !emailRegex.test(value)) return "Please enter a valid email address";
       return "";
     case 'phone':
-      if (!value || !value.trim()) return "Phone number is required";
-      // Basic validation for E.164 format or at least 10 digits
-      const phoneDigits = value.replace(/[^0-9]/g, '');
+      if (!value || (typeof value === 'string' && !value.trim())) return "Phone number is required";
+      const phoneDigits = (typeof value === 'string' ? value : String(value)).replace(/[^0-9]/g, '');
       if (phoneDigits.length < 8) return "Please enter a valid phone number";
       return "";
     case 'travelType':
@@ -37,20 +65,20 @@ const validateField = (name: string, value: any): string => {
       return "";
     case 'expectedDate':
       if (!value) return "Please select expected date";
-      const selectedDate = new Date(value);
+      const selectedDate = new Date(value as string);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (selectedDate < today) return "Expected date cannot be in the past";
       return "";
     case 'nights':
       if (!value) return "Number of nights is required";
-      const nights = parseInt(value);
+      const nights = parseInt(value as string);
       if (isNaN(nights) || nights < 1) return "Must be at least 1 night";
       if (nights > 365) return "Must be less than 365 nights";
       return "";
     case 'adults':
       if (!value) return "Number of adults is required";
-      const adults = parseInt(value);
+      const adults = parseInt(value as string);
       if (isNaN(adults) || adults < 1) return "Must be at least 1 adult";
       if (adults > 50) return "Must be less than 50 adults";
       return "";
@@ -68,12 +96,12 @@ const validateField = (name: string, value: any): string => {
   }
 };
 
-const validateStep = (step: number, formData: any): { isValid: boolean; errors: { [key: string]: string } } => {
-  const errors: { [key: string]: string } = {};
+const validateStep = (step: number, formData: FormDataType): { isValid: boolean; errors: FieldErrors } => {
+  const errors: FieldErrors = {};
   let isValid = true;
 
   if (step === 1) {
-    const fields = ['firstName', 'lastName', 'email', 'phone'];
+    const fields: (keyof FormDataType)[] = ['firstName', 'lastName', 'email', 'phone'];
     for (const field of fields) {
       const error = validateField(field, formData[field]);
       if (error) {
@@ -82,7 +110,7 @@ const validateStep = (step: number, formData: any): { isValid: boolean; errors: 
       }
     }
   } else if (step === 2) {
-    const fields = ['travelType', 'accommodation', 'airportPickup', 'expectedDate', 'nights', 'adults', 'budget'];
+    const fields: (keyof FormDataType)[] = ['travelType', 'accommodation', 'airportPickup', 'expectedDate', 'nights', 'adults', 'budget'];
     for (const field of fields) {
       const error = validateField(field, formData[field]);
       if (error) {
@@ -91,7 +119,7 @@ const validateStep = (step: number, formData: any): { isValid: boolean; errors: 
       }
     }
   } else if (step === 4) {
-    const fields = ['agreeToInfo', 'agreeToTerms'];
+    const fields: (keyof FormDataType)[] = ['agreeToInfo', 'agreeToTerms'];
     for (const field of fields) {
       const error = validateField(field, formData[field]);
       if (error) {
@@ -105,13 +133,13 @@ const validateStep = (step: number, formData: any): { isValid: boolean; errors: 
 };
 
 const BookNow = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataType>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     travelType: "",
-    tripEnhancements: [] as string[],
+    tripEnhancements: [],
     accommodation: "",
     airportPickup: "",
     expectedDate: "",
@@ -119,7 +147,7 @@ const BookNow = () => {
     budget: "",
     adults: "",
     children: "",
-    destinations: [] as string[],
+    destinations: [],
     additionalInfo: "",
     agreeToTerms: false,
     agreeToInfo: false,
@@ -130,8 +158,8 @@ const BookNow = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
-  const [touchedFields, setTouchedFields] = useState<{ [key: string]: boolean }>({});
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [touchedFields, setTouchedFields] = useState<TouchedFields>({});
 
   // Auto-hide flash message after 5 seconds
   useEffect(() => {
@@ -169,14 +197,14 @@ const BookNow = () => {
 
     if (type === "checkbox") {
       if (
-        Array.isArray(formData[name as keyof typeof formData]) &&
+        Array.isArray(formData[name as keyof FormDataType]) &&
         typeof value === "string"
       ) {
         setFormData((prevState) => ({
           ...prevState,
           [name]: checked
-            ? [...(prevState[name as keyof typeof formData] as string[]), value]
-            : (prevState[name as keyof typeof formData] as string[]).filter(
+            ? [...(prevState[name as keyof FormDataType] as string[]), value]
+            : (prevState[name as keyof FormDataType] as string[]).filter(
                 (v) => v !== value
               ),
         }));
@@ -263,13 +291,12 @@ const BookNow = () => {
     if (Object.keys(allErrors).length > 0) {
       setFieldErrors(allErrors);
       // Mark all fields as touched to show errors
-      const allTouched: { [key: string]: boolean } = {};
+      const allTouched: TouchedFields = {};
       Object.keys(formData).forEach(key => {
         allTouched[key] = true;
       });
       setTouchedFields(allTouched);
       setError("Please fix the errors before submitting");
-      // Scroll to top to show error message
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -310,15 +337,15 @@ const BookNow = () => {
     if (!isValid) {
       setFieldErrors(errors);
       // Mark current step fields as touched
-      const stepFields = currentStep === 1 
+      const stepFields: (keyof FormDataType)[] = currentStep === 1 
         ? ['firstName', 'lastName', 'email', 'phone']
         : currentStep === 2 
         ? ['travelType', 'accommodation', 'airportPickup', 'expectedDate', 'nights', 'adults', 'budget']
         : [];
       
-      const newTouched: { [key: string]: boolean } = { ...touchedFields };
+      const newTouched: TouchedFields = { ...touchedFields };
       stepFields.forEach(field => {
-        newTouched[field] = true;
+        newTouched[field as string] = true;
       });
       setTouchedFields(newTouched);
       setError("Please fill in all required fields");
@@ -336,7 +363,7 @@ const BookNow = () => {
 
   // Helper to check if field has error
   const hasError = (fieldName: string): boolean => {
-    return !!fieldErrors[fieldName] && touchedFields[fieldName];
+    return !!fieldErrors[fieldName] && !!touchedFields[fieldName];
   };
 
   // Helper to get error message
@@ -374,8 +401,7 @@ const BookNow = () => {
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-50 to-transparent"></div>
       </section>
-
-      {/* Booking Form Section */}
+{/* Booking Form Section */}
       <div className="py-16 px-4 sm:px-6 lg:px-8 -mt-20 relative z-20">
         <div className="max-w-6xl mx-auto">
           {/* Progress Steps */}
@@ -419,7 +445,7 @@ const BookNow = () => {
                   </div>
                   <div>
                     <p className="font-semibold">Booking Request Submitted Successfully!</p>
-                    <p className="text-sm">We'll contact you within 24 hours to confirm your safari adventure.</p>
+                    <p className="text-sm">We&apos;ll contact you within 24 hours to confirm your safari adventure.</p>
                   </div>
                 </div>
               </div>

@@ -54,7 +54,7 @@ export default function AdminSetupForm({ onSuccess, redirectTo = '/admin/login',
       } else {
         setMessage({ type: 'error', text: data.message || 'Registration failed' });
       }
-    } catch (error) {
+    } catch (err) {
       setMessage({ type: 'error', text: 'An error occurred. Please try again.' });
     } finally {
       setLoading(false);
@@ -78,22 +78,40 @@ export default function AdminSetupForm({ onSuccess, redirectTo = '/admin/login',
             className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500"
             required
           />
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            required
-          />
-          <input
-            type={showConfirmPassword ? "text" : "password"}
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 pr-10"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+            >
+              {showPassword ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 pr-10"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+            >
+              {showConfirmPassword ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+            </button>
+          </div>
           <input
             type="password"
             placeholder="Secret Key"
@@ -121,7 +139,7 @@ export default function AdminSetupForm({ onSuccess, redirectTo = '/admin/login',
     );
   }
 
-  // Full version (original)
+  // Full version
   return (
     <div className="max-w-md w-full">
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -197,9 +215,7 @@ export default function AdminSetupForm({ onSuccess, redirectTo = '/admin/login',
               placeholder="Enter the secret key"
             />
           </div>
-          <p className="text-gray-400 text-xs mt-1">
-            Use the ADMIN_SECRET_KEY from .env.local
-          </p>
+          
         </div>
 
         {message && (

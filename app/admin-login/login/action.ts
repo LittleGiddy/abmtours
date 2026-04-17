@@ -3,7 +3,7 @@
 import clientPromise from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+
 
 export async function loginAdmin({ email, password }: { email: string; password: string }) {
   // Move redirect outside of try-catch

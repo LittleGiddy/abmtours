@@ -10,7 +10,6 @@ import {
   Mail, 
   Phone, 
   MapPin, 
-  DollarSign,
   ChevronLeft,
   ChevronRight,
   FileText,

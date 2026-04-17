@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FaStar, FaTrash, FaEdit, FaSave, FaTimes, FaPlus, FaUser, FaCheckCircle, FaCalendarAlt } from 'react-icons/fa';
+import { FaStar, FaTrash, FaEdit, FaSave, FaTimes, FaPlus,FaCheckCircle} from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Review {

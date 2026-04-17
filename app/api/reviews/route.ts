@@ -2,8 +2,26 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
+// Define proper types
+interface ReviewData {
+  name: string;
+  rating: number;
+  text: string;
+  date: string;
+  verified: boolean;
+  tripType?: string | null;
+  destination?: string | null;
+}
+
+interface ReviewDocument extends ReviewData {
+  _id?: ObjectId;
+  helpful: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Validation function
-const validateReview = (data: any) => {
+const validateReview = (data: Partial<ReviewData>): string[] => {
   const errors: string[] = [];
   
   if (!data.name || typeof data.name !== 'string' || data.name.trim().length < 2) {
@@ -66,7 +84,7 @@ export async function POST(request: Request) {
     const client = await clientPromise;
     const db = client.db('abmtours');
     
-    const review = {
+    const review: Omit<ReviewDocument, '_id'> = {
       name: name.trim(),
       rating: Number(rating),
       text: text.trim(),
@@ -163,18 +181,21 @@ export async function PUT(request: Request) {
       );
     }
     
-    // Remove profileImage if somehow sent
-    delete updateData.profileImage;
-    
     const client = await clientPromise;
     const db = client.db('abmtours');
     
-    const updateFields: any = {
-      ...updateData,
+    // Prepare update fields
+    const updateFields: Partial<ReviewDocument> = {
       updatedAt: new Date()
     };
     
-    if (updateFields.rating) updateFields.rating = Number(updateFields.rating);
+    if (updateData.name) updateFields.name = updateData.name.trim();
+    if (updateData.rating) updateFields.rating = Number(updateData.rating);
+    if (updateData.text) updateFields.text = updateData.text.trim();
+    if (updateData.date) updateFields.date = new Date(updateData.date).toISOString();
+    if (updateData.verified !== undefined) updateFields.verified = updateData.verified === true || updateData.verified === 'true';
+    if (updateData.tripType !== undefined) updateFields.tripType = updateData.tripType || null;
+    if (updateData.destination !== undefined) updateFields.destination = updateData.destination || null;
     
     const result = await db.collection('reviews').updateOne(
       { _id: new ObjectId(id) },

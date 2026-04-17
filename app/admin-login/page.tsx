@@ -23,7 +23,7 @@ import {
   FaDove,
   FaLeaf
 } from 'react-icons/fa';
-import { MdOutlineTravelExplore, MdLandscape, MdPark, MdGrass, MdNaturePeople } from 'react-icons/md';
+import {  MdLandscape, MdGrass} from 'react-icons/md';
 import { GiAfrica } from 'react-icons/gi';
 
 export default function AdminLoginPage() {
