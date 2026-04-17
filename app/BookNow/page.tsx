@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Calendar, Users, Plane, Hotel, MapPin, Phone, Mail, User, CreditCard, Clock, ChevronRight, Sparkles, Shield, Award, Star } from "lucide-react";
 import { PhoneInput } from "react-international-phone";
-import "react-international-phone/style.css";
+import AdsterraBanner from "../components/AdsterraBanner";
 
 // Define proper types
 interface FormDataType {
@@ -960,6 +960,8 @@ const BookNow = () => {
                 <p className="font-semibold">5-Star Service</p>
                 <p className="text-sm text-gray-500">Expert travel planners</p>
               </div>
+
+              <AdsterraBanner />
             </div>
           </div>
         </div>
