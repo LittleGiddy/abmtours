@@ -1,14 +1,14 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
-import clientPromise from '@/lib/mongodb';
+import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
 import type { NextRequest } from 'next/server';
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
 
   try {
-    const client = await clientPromise;
+    const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
 
     const result = await db.collection('messages').deleteOne({ _id: new ObjectId(id) });

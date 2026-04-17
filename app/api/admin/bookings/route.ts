@@ -3,12 +3,12 @@ export const fetchCache = 'force-no-store';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
 import { ObjectId } from 'mongodb';
 
 export async function GET() {
   try {
-    const client = await clientPromise;
+     const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
     const bookings = await db.collection('bookings').find({}).toArray();
     
@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const client = await clientPromise;
+     const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
     
     const result = await db.collection('bookings').insertOne({
@@ -65,7 +65,7 @@ export async function DELETE(request: Request) {
       );
     }
     
-    const client = await clientPromise;
+     const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
     
     const result = await db.collection('bookings').deleteOne({

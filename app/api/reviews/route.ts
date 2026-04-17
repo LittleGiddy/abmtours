@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
 import { ObjectId } from 'mongodb';
 
 // Define proper types
@@ -46,7 +46,7 @@ const validateReview = (data: Partial<ReviewData>): string[] => {
 
 export async function GET() {
   try {
-    const client = await clientPromise;
+    const client = await getClientPromise();
     const db = client.db('abmtours');
     
     const reviews = await db.collection('reviews')
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     
     const { name, rating, text, date, verified, tripType, destination } = body;
     
-    const client = await clientPromise;
+    const client = await getClientPromise();
     const db = client.db('abmtours');
     
     const review: Omit<ReviewDocument, '_id'> = {
@@ -137,7 +137,7 @@ export async function DELETE(request: Request) {
       );
     }
     
-    const client = await clientPromise;
+    const client = await getClientPromise();
     const db = client.db('abmtours');
     
     const result = await db.collection('reviews').deleteOne({ _id: new ObjectId(id) });
@@ -186,7 +186,7 @@ export async function PUT(request: Request) {
       );
     }
     
-    const client = await clientPromise;
+    const client = await getClientPromise();
     const db = client.db('abmtours');
     
     // Prepare update fields

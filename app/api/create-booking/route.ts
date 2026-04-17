@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
 import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     }
 
     // 1. SAVE TO DATABASE
-    const client = await clientPromise;
+    const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
 
     const bookingData = {

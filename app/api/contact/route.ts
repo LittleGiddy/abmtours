@@ -1,12 +1,12 @@
 // app/api/contact/route.ts
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
 
 // GET: Fetch all messages
 export async function GET() {
   try {
-    const client = await clientPromise;
+       const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
     const messages = await db.collection('messages').find().toArray();
     return NextResponse.json(messages);
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const client = await clientPromise;
+       const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
     const collection = db.collection('messages');
     const result = await collection.insertOne({ fullName, email, message, createdAt: new Date() });

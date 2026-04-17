@@ -1,6 +1,6 @@
 // pages/api/download/[id].ts
 import { NextApiRequest, NextApiResponse } from 'next';
-import clientPromise from '@/lib/mongodb';
+import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
 import { ObjectId } from 'mongodb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { id } = req.query;
 
   try {
-    const client = await clientPromise;
+       const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db();
     
     const fileDoc = await db.collection('files').findOne({ _id: new ObjectId(id as string) });

@@ -1,6 +1,6 @@
 'use server';
 
-import clientPromise from '@/lib/mongodb';
+import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 
@@ -12,7 +12,7 @@ export async function loginAdmin({ email, password }: { email: string; password:
       return { success: false, message: 'Email and password are required' };
     }
     
-    const client = await clientPromise;
+      const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
     const admin = await db.collection('admins').findOne({ email });
 
