@@ -14,7 +14,6 @@ declare const global: typeof globalThis & {
 export function getClientPromise(): Promise<MongoClient> {
   const uri = process.env.MONGODB_URI;
 
-  // ✅ Check happens at runtime, not build time
   if (!uri) {
     throw new Error('Please define MONGODB_URI environment variable');
   }
@@ -27,7 +26,9 @@ export function getClientPromise(): Promise<MongoClient> {
     return global._mongoClientPromise;
   }
 
-  // Production: fresh connection per cold start
   const client = new MongoClient(uri, options);
   return client.connect();
 }
+
+// ✅ Keep default export so existing imports don't break
+export default getClientPromise;
