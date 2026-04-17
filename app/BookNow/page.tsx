@@ -25,6 +25,8 @@ interface FormDataType {
   agreeToInfo: boolean;
 }
 
+type FormValue = string | boolean | string[];
+
 interface FieldErrors {
   [key: string]: string;
 }
@@ -33,8 +35,13 @@ interface TouchedFields {
   [key: string]: boolean;
 }
 
-// Validation helper functions
-const validateField = (name: string, value: string | boolean): string => {
+// Validation helper functions - updated to handle all types
+const validateField = (name: string, value: FormValue): string => {
+  // Handle array fields (tripEnhancements, destinations) - they are optional
+  if (Array.isArray(value)) {
+    return ""; // Arrays are optional, no validation needed
+  }
+  
   switch (name) {
     case 'firstName':
       if (!value || (typeof value === 'string' && !value.trim())) return "First name is required";
@@ -401,6 +408,7 @@ const BookNow = () => {
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-50 to-transparent"></div>
       </section>
+
 {/* Booking Form Section */}
       <div className="py-16 px-4 sm:px-6 lg:px-8 -mt-20 relative z-20">
         <div className="max-w-6xl mx-auto">
