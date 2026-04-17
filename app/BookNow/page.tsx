@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Calendar, Users, Plane, Hotel, MapPin, Phone, Mail, User, CreditCard, Clock, ChevronRight, Sparkles, Shield, Award, Star } from "lucide-react";
 import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
 import AdsterraBanner from "../components/AdsterraBanner";
 
 // Define proper types
@@ -963,13 +964,11 @@ const BookNow = () => {
 
               
             </div>
-            
           </div>
         </div>
       </div>
       <AdsterraBanner />
     </div>
-    
   );
 };
 
