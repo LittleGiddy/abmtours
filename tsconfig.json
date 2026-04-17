@@ -45,7 +45,7 @@
     "lib/mongodb.js",
     "app/api/contact/route.js",
     "app/components/Home/Destinations/DestinationSlider.jsx"
-  ],
+, "app/admin/SIdeNavbar/SIdeNavbar.jsx", "scripts/create-admin-simple.js"  ],
   "exclude": [
     "node_modules"
   ]

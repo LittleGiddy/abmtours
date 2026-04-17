@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     }
 
     // 1. SAVE TO DATABASE
-    const client = await getClientPromise(); // ✅ call it as a function
+    const client = await getClientPromise(); // ✅ call it as a function  
     const db = client.db('abmtours');
 
     const bookingData = {

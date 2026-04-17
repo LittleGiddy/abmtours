@@ -2,6 +2,7 @@ import React from "react";
 import SectionHeading from "../../Helper/SectionHeading";
 import WhyUsCard from "./WhyUsCard";
 
+
 const WhyUs = () => {
   return (
     <div className=" pt-16 pb-24">
@@ -10,6 +11,7 @@ const WhyUs = () => {
 
       <div className="grid w-[80%] mx-auto grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 items-center mt-20">
         {/* Top Three Icons */}
+        
         <div>
           <WhyUsCard
             image="/images/Cultural.svg"

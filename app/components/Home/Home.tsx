@@ -7,7 +7,7 @@ import News from './News/News';
 import SendUsEmailMain from '../SendUsEmail/SendUsEmailMain';
 import FAQAccordion from './FAQAccordion/FAQAccordion';
 import BestTimeToVisit from './BestTimeToVisit/BestTimeToVisit'
-
+import AdsterraBanner from '../AdsterraBanner';
 
 
 
@@ -19,11 +19,13 @@ const Home = () => {
     <div className="overflow-hidden">
       <Hero />
       <WhyUs />
+      
       <Destinations />
       <Review />
       <News />
       <FAQAccordion />
       <BestTimeToVisit />
+      <AdsterraBanner />
       <SendUsEmailMain />
       
    
