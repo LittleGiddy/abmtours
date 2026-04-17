@@ -1,11 +1,11 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
-import clientPromise from './lib/mongodb';
+import {getClientPromise} from './lib/mongodb';
 import bcrypt from 'bcryptjs';
 
 async function seedAdmin() {
-  const client = await clientPromise;
+  const client = await getClientPromise();
   const db = client.db();
 
   const email = 'info@abmtours.co.tz';   // ← change this
