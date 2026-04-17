@@ -54,7 +54,11 @@ export async function GET() {
       .toArray();
     
     // Remove profileImage from response (if any exists in old data)
-    const cleanedReviews = reviews.map(({ profileImage, ...review }) => review);
+    const cleanedReviews = reviews.map((review) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { profileImage, ...rest } = review;
+      return rest;
+    });
     
     return NextResponse.json({ success: true, reviews: cleanedReviews });
   } catch (error) {
