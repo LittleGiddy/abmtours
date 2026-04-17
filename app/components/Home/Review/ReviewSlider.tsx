@@ -203,13 +203,6 @@ const Reviews = () => {
                       </div>
                     </div>
                     
-                    {/* Optional: Trip Info */}
-                    {review.trip && (
-                      <div className="mt-3 text-xs text-gray-500 flex items-center gap-2">
-                        <span className="font-medium">Trip:</span>
-                        <span>{review.trip}</span>
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               )}
