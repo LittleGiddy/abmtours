@@ -54,7 +54,8 @@ export default function AdminSetupForm({ onSuccess, redirectTo = '/admin/login',
       } else {
         setMessage({ type: 'error', text: data.message || 'Registration failed' });
       }
-    } catch (err) {
+    } catch {
+      // Error is handled by showing user-friendly message below
       setMessage({ type: 'error', text: 'An error occurred. Please try again.' });
     } finally {
       setLoading(false);
@@ -215,7 +216,9 @@ export default function AdminSetupForm({ onSuccess, redirectTo = '/admin/login',
               placeholder="Enter the secret key"
             />
           </div>
-          
+          <p className="text-gray-400 text-xs mt-1">
+            Use the ADMIN_SECRET_KEY from .env.local
+          </p>
         </div>
 
         {message && (

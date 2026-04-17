@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaEnvelope, FaLock, FaCheckCircle, FaEye, FaEyeSlash, FaUserShield, FaArrowLeft } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaKey, FaCheckCircle, FaEye, FaEyeSlash, FaUserShield, FaArrowLeft } from 'react-icons/fa';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function AdminSetupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [secretKey, setSecretKey] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,18 +37,18 @@ export default function AdminSetupPage() {
       const response = await fetch('/api/admin/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }), // No secretKey
+        body: JSON.stringify({ email, password, secretKey }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setMessage({ type: 'success', text: 'Admin created successfully! Redirecting to login...' });
-        setTimeout(() => router.push('/admin-login'), 2000);
+        setTimeout(() => router.push('/admin/login'), 2000);
       } else {
         setMessage({ type: 'error', text: data.message || 'Registration failed' });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'An error occurred. Please try again.' });
     } finally {
       setLoading(false);
@@ -135,6 +135,24 @@ export default function AdminSetupPage() {
                   {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">Secret Key</label>
+              <div className="relative">
+                <FaKey className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="password"
+                  value={secretKey}
+                  onChange={(e) => setSecretKey(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-3 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="Enter the secret key from .env.local"
+                />
+              </div>
+              <p className="text-gray-400 text-xs mt-1">
+                Use the ADMIN_SECRET_KEY from your .env.local file
+              </p>
             </div>
 
             {message && (
