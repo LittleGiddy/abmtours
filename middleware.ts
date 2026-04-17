@@ -1,19 +1,34 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/admin') && pathname !== '/admin-login') {
-    const isLoggedIn = request.cookies.get('admin-auth')?.value === 'true'
+  // Public paths - no authentication needed
+  const publicPaths = [
+    '/admin/login',
+    '/admin/setup',
+    '/_next',
+    '/api',
+    '/favicon.ico',
+  ];
+
+  const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
+  
+  // Only protect /admin routes
+  if (pathname.startsWith('/admin') && !isPublicPath) {
+    const isLoggedIn = request.cookies.get('admin-auth')?.value === 'true';
+    
     if (!isLoggedIn) {
-      return NextResponse.redirect(new URL('/admin-login', request.url))
+      const loginUrl = new URL('/admin/login', request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
+// This matcher ensures middleware runs only on specific paths
 export const config = {
-  matcher: ['/((?!_next|api|favicon.ico).*)',],
-}
+  matcher: ['/admin/:path*'],
+};

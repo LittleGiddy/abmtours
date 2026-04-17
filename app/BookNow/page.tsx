@@ -1,6 +1,108 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Calendar, Users, Plane, Hotel, MapPin, Phone, Mail, User, CreditCard, Clock, ChevronRight, Sparkles, Shield, Award, Star } from "lucide-react";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
+
+// Validation helper functions
+const validateField = (name: string, value: any): string => {
+  switch (name) {
+    case 'firstName':
+      if (!value || !value.trim()) return "First name is required";
+      if (value.trim().length < 2) return "First name must be at least 2 characters";
+      return "";
+    case 'lastName':
+      if (!value || !value.trim()) return "Last name is required";
+      if (value.trim().length < 2) return "Last name must be at least 2 characters";
+      return "";
+    case 'email':
+      if (!value || !value.trim()) return "Email is required";
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) return "Please enter a valid email address";
+      return "";
+    case 'phone':
+      if (!value || !value.trim()) return "Phone number is required";
+      // Basic validation for E.164 format or at least 10 digits
+      const phoneDigits = value.replace(/[^0-9]/g, '');
+      if (phoneDigits.length < 8) return "Please enter a valid phone number";
+      return "";
+    case 'travelType':
+      if (!value) return "Please select a travel type";
+      return "";
+    case 'accommodation':
+      if (!value) return "Please select accommodation type";
+      return "";
+    case 'airportPickup':
+      if (!value) return "Please select airport pickup";
+      return "";
+    case 'expectedDate':
+      if (!value) return "Please select expected date";
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate < today) return "Expected date cannot be in the past";
+      return "";
+    case 'nights':
+      if (!value) return "Number of nights is required";
+      const nights = parseInt(value);
+      if (isNaN(nights) || nights < 1) return "Must be at least 1 night";
+      if (nights > 365) return "Must be less than 365 nights";
+      return "";
+    case 'adults':
+      if (!value) return "Number of adults is required";
+      const adults = parseInt(value);
+      if (isNaN(adults) || adults < 1) return "Must be at least 1 adult";
+      if (adults > 50) return "Must be less than 50 adults";
+      return "";
+    case 'budget':
+      if (!value) return "Please select budget range";
+      return "";
+    case 'agreeToInfo':
+      if (!value) return "You must agree to be contacted";
+      return "";
+    case 'agreeToTerms':
+      if (!value) return "You must agree to the terms and conditions";
+      return "";
+    default:
+      return "";
+  }
+};
+
+const validateStep = (step: number, formData: any): { isValid: boolean; errors: { [key: string]: string } } => {
+  const errors: { [key: string]: string } = {};
+  let isValid = true;
+
+  if (step === 1) {
+    const fields = ['firstName', 'lastName', 'email', 'phone'];
+    for (const field of fields) {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        errors[field] = error;
+        isValid = false;
+      }
+    }
+  } else if (step === 2) {
+    const fields = ['travelType', 'accommodation', 'airportPickup', 'expectedDate', 'nights', 'adults', 'budget'];
+    for (const field of fields) {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        errors[field] = error;
+        isValid = false;
+      }
+    }
+  } else if (step === 4) {
+    const fields = ['agreeToInfo', 'agreeToTerms'];
+    for (const field of fields) {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        errors[field] = error;
+        isValid = false;
+      }
+    }
+  }
+
+  return { isValid, errors };
+};
 
 const BookNow = () => {
   const [formData, setFormData] = useState({
@@ -28,6 +130,8 @@ const BookNow = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+  const [touchedFields, setTouchedFields] = useState<{ [key: string]: boolean }>({});
 
   // Auto-hide flash message after 5 seconds
   useEffect(() => {
@@ -58,6 +162,11 @@ const BookNow = () => {
     const { name, value, type } = target;
     const checked = (target as HTMLInputElement).checked;
 
+    // Clear error for this field when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: "" }));
+    }
+
     if (type === "checkbox") {
       if (
         Array.isArray(formData[name as keyof typeof formData]) &&
@@ -76,6 +185,12 @@ const BookNow = () => {
           ...prevState,
           [name]: checked,
         }));
+        
+        // Validate checkbox immediately
+        if (name === 'agreeToInfo' || name === 'agreeToTerms') {
+          const errorMsg = validateField(name, checked);
+          setFieldErrors(prev => ({ ...prev, [name]: errorMsg }));
+        }
       }
     } else {
       setFormData((prevState) => ({
@@ -83,6 +198,27 @@ const BookNow = () => {
         [name]: value,
       }));
     }
+  };
+
+  const handlePhoneChange = (phone: string) => {
+    setFormData(prev => ({ ...prev, phone: phone || "" }));
+    // Clear error when user types
+    if (fieldErrors.phone) {
+      setFieldErrors(prev => ({ ...prev, phone: "" }));
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    setTouchedFields(prev => ({ ...prev, phone: true }));
+    const errorMsg = validateField("phone", formData.phone);
+    setFieldErrors(prev => ({ ...prev, phone: errorMsg }));
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTouchedFields(prev => ({ ...prev, [name]: true }));
+    const errorMsg = validateField(name, value);
+    setFieldErrors(prev => ({ ...prev, [name]: errorMsg }));
   };
 
   const resetForm = () => {
@@ -105,16 +241,43 @@ const BookNow = () => {
       agreeToTerms: false,
       agreeToInfo: false,
     });
+    setFieldErrors({});
+    setTouchedFields({});
     setCurrentStep(1);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Final validation before submission
+    const step1Validation = validateStep(1, formData);
+    const step2Validation = validateStep(2, formData);
+    const step4Validation = validateStep(4, formData);
+    
+    const allErrors = {
+      ...step1Validation.errors,
+      ...step2Validation.errors,
+      ...step4Validation.errors
+    };
+    
+    if (Object.keys(allErrors).length > 0) {
+      setFieldErrors(allErrors);
+      // Mark all fields as touched to show errors
+      const allTouched: { [key: string]: boolean } = {};
+      Object.keys(formData).forEach(key => {
+        allTouched[key] = true;
+      });
+      setTouchedFields(allTouched);
+      setError("Please fix the errors before submitting");
+      // Scroll to top to show error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Call combined API endpoint
       const response = await fetch('/api/create-booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -127,17 +290,8 @@ const BookNow = () => {
         throw new Error(data.error || 'Failed to create booking');
       }
 
-      // Show success message
-      if (data.emailSent) {
-        setShowFlash(true);
-      } else {
-        setShowFlash(true);
-        console.warn('Email notification issue:', data.emailError);
-      }
-      
+      setShowFlash(true);
       resetForm();
-      
-      // Scroll to top to show success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
     } catch (error) {
@@ -150,6 +304,27 @@ const BookNow = () => {
   };
 
   const nextStep = () => {
+    // Validate current step before proceeding
+    const { isValid, errors } = validateStep(currentStep, formData);
+    
+    if (!isValid) {
+      setFieldErrors(errors);
+      // Mark current step fields as touched
+      const stepFields = currentStep === 1 
+        ? ['firstName', 'lastName', 'email', 'phone']
+        : currentStep === 2 
+        ? ['travelType', 'accommodation', 'airportPickup', 'expectedDate', 'nights', 'adults', 'budget']
+        : [];
+      
+      const newTouched: { [key: string]: boolean } = { ...touchedFields };
+      stepFields.forEach(field => {
+        newTouched[field] = true;
+      });
+      setTouchedFields(newTouched);
+      setError("Please fill in all required fields");
+      return;
+    }
+    
     if (currentStep < 4) setCurrentStep(currentStep + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -157,6 +332,16 @@ const BookNow = () => {
   const prevStep = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Helper to check if field has error
+  const hasError = (fieldName: string): boolean => {
+    return !!fieldErrors[fieldName] && touchedFields[fieldName];
+  };
+
+  // Helper to get error message
+  const getError = (fieldName: string): string => {
+    return fieldErrors[fieldName] || "";
   };
 
   return (
@@ -234,7 +419,7 @@ const BookNow = () => {
                   </div>
                   <div>
                     <p className="font-semibold">Booking Request Submitted Successfully!</p>
-                    <p className="text-sm">We&apos;ll contact you within 24 hours to confirm your safari adventure.</p>
+                    <p className="text-sm">We'll contact you within 24 hours to confirm your safari adventure.</p>
                   </div>
                 </div>
               </div>
@@ -276,16 +461,20 @@ const BookNow = () => {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                         onFocus={() => setFocusedField('firstName')}
-                        onBlur={() => setFocusedField(null)}
-                        required
                         className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
                           focusedField === 'firstName'
                             ? 'border-blue-500 shadow-lg ring-2 ring-blue-200'
+                            : hasError('firstName')
+                            ? 'border-red-500 bg-red-50'
                             : 'border-gray-300 hover:border-blue-300'
                         } focus:outline-none`}
                         placeholder="John"
                       />
+                      {hasError('firstName') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('firstName')}</p>
+                      )}
                     </div>
                     <div className="relative">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
@@ -294,10 +483,17 @@ const BookNow = () => {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onBlur={handleBlur}
+                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
+                          hasError('lastName')
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-blue-300'
+                        } focus:border-blue-500 focus:outline-none`}
                         placeholder="Doe"
                       />
+                      {hasError('lastName') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('lastName')}</p>
+                      )}
                     </div>
                     <div className="relative">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -309,25 +505,38 @@ const BookNow = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onBlur={handleBlur}
+                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
+                          hasError('email')
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-blue-300'
+                        } focus:border-blue-500 focus:outline-none`}
                         placeholder="john@example.com"
                       />
+                      {hasError('email') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('email')}</p>
+                      )}
                     </div>
                     <div className="relative">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                         <Phone className="w-4 h-4 text-blue-900" />
-                        Phone *
+                        Phone Number *
                       </label>
-                      <input
-                        type="tel"
-                        name="phone"
+                      <PhoneInput
+                        defaultCountry="tz"
                         value={formData.phone}
-                        onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onChange={handlePhoneChange}
+                        onBlur={handlePhoneBlur}
                         placeholder="+255 XXX XXX XXX"
+                        className={`w-full [&_.react-international-phone-input-container]:w-full [&_.react-international-phone-country-selector-button]:border-2 [&_.react-international-phone-country-selector-button]:rounded-l-xl [&_.react-international-phone-input]:border-2 [&_.react-international-phone-input]:rounded-r-xl [&_.react-international-phone-input]:p-4 [&_.react-international-phone-country-selector-button]:p-4 ${
+                          hasError('phone') 
+                            ? '[&_.react-international-phone-country-selector-button]:border-red-500 [&_.react-international-phone-input]:border-red-500 [&_.react-international-phone-input]:bg-red-50' 
+                            : '[&_.react-international-phone-country-selector-button]:border-gray-300 [&_.react-international-phone-input]:border-gray-300 hover:[&_.react-international-phone-country-selector-button]:border-blue-300 hover:[&_.react-international-phone-input]:border-blue-300'
+                        }`}
                       />
+                      {hasError('phone') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('phone')}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -347,14 +556,21 @@ const BookNow = () => {
                         name="travelType"
                         value={formData.travelType}
                         onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onBlur={handleBlur}
+                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
+                          hasError('travelType')
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-blue-300'
+                        } focus:border-blue-500 focus:outline-none`}
                       >
                         <option value="">Select travel type</option>
                         {["Big Safaris", "Safari & Beach", "Honeymoon", "The Migration", "Vacation", "Other"].map((type) => (
                           <option key={type} value={type}>{type}</option>
                         ))}
                       </select>
+                      {hasError('travelType') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('travelType')}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Accommodation Type *</label>
@@ -362,14 +578,21 @@ const BookNow = () => {
                         name="accommodation"
                         value={formData.accommodation}
                         onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onBlur={handleBlur}
+                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
+                          hasError('accommodation')
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-blue-300'
+                        } focus:border-blue-500 focus:outline-none`}
                       >
                         <option value="">Select accommodation</option>
                         {["Luxury", "Mid Range", "Budget", "Don't know yet"].map((type) => (
                           <option key={type} value={type}>{type}</option>
                         ))}
                       </select>
+                      {hasError('accommodation') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('accommodation')}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -381,9 +604,16 @@ const BookNow = () => {
                         name="expectedDate"
                         value={formData.expectedDate}
                         onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onBlur={handleBlur}
+                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
+                          hasError('expectedDate')
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-blue-300'
+                        } focus:border-blue-500 focus:outline-none`}
                       />
+                      {hasError('expectedDate') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('expectedDate')}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -395,10 +625,17 @@ const BookNow = () => {
                         name="nights"
                         value={formData.nights}
                         onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onBlur={handleBlur}
                         placeholder="7"
+                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
+                          hasError('nights')
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-blue-300'
+                        } focus:border-blue-500 focus:outline-none`}
                       />
+                      {hasError('nights') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('nights')}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -409,14 +646,21 @@ const BookNow = () => {
                         name="adults"
                         value={formData.adults}
                         onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onBlur={handleBlur}
+                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
+                          hasError('adults')
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-blue-300'
+                        } focus:border-blue-500 focus:outline-none`}
                       >
                         <option value="">Select adults</option>
                         {[...Array(10).keys()].map((n) => (
                           <option key={n + 1} value={String(n + 1)}>{n + 1}</option>
                         ))}
                       </select>
+                      {hasError('adults') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('adults')}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -444,14 +688,21 @@ const BookNow = () => {
                         name="budget"
                         value={formData.budget}
                         onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onBlur={handleBlur}
+                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
+                          hasError('budget')
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-blue-300'
+                        } focus:border-blue-500 focus:outline-none`}
                       >
                         <option value="">Select budget</option>
                         {["2000-4000", "5000-7000", "8000-10000", "11000-13000", "14000-16000", "17000-20000", "More than 20000"].map((budget) => (
                           <option key={budget} value={budget}>${budget}</option>
                         ))}
                       </select>
+                      {hasError('budget') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('budget')}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -462,14 +713,21 @@ const BookNow = () => {
                         name="airportPickup"
                         value={formData.airportPickup}
                         onChange={handleChange}
-                        required
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                        onBlur={handleBlur}
+                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
+                          hasError('airportPickup')
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-blue-300'
+                        } focus:border-blue-500 focus:outline-none`}
                       >
                         <option value="">Select airport</option>
                         {["Kilimanjaro (KIA)", "Dar es salaam (JNIA)", "Zanzibar (ZNZ)"].map((airport) => (
                           <option key={airport} value={airport}>{airport}</option>
                         ))}
                       </select>
+                      {hasError('airportPickup') && (
+                        <p className="mt-1 text-sm text-red-500">{getError('airportPickup')}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -567,22 +825,33 @@ const BookNow = () => {
                         name="agreeToInfo"
                         checked={formData.agreeToInfo}
                         onChange={handleChange}
-                        required
-                        className="mt-1 w-5 h-5 text-blue-600"
+                        onBlur={handleBlur}
+                        className={`mt-1 w-5 h-5 rounded ${
+                          hasError('agreeToInfo') ? 'border-red-500' : 'text-blue-600'
+                        }`}
                       />
                       <span className="text-gray-700">I agree to be contacted for follow-up and additional information. *</span>
                     </label>
+                    {hasError('agreeToInfo') && (
+                      <p className="text-sm text-red-500 ml-8">{getError('agreeToInfo')}</p>
+                    )}
+                    
                     <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer">
                       <input
                         type="checkbox"
                         name="agreeToTerms"
                         checked={formData.agreeToTerms}
                         onChange={handleChange}
-                        required
-                        className="mt-1 w-5 h-5 text-blue-600"
+                        onBlur={handleBlur}
+                        className={`mt-1 w-5 h-5 rounded ${
+                          hasError('agreeToTerms') ? 'border-red-500' : 'text-blue-600'
+                        }`}
                       />
                       <span className="text-gray-700">I agree to the terms and conditions. *</span>
                     </label>
+                    {hasError('agreeToTerms') && (
+                      <p className="text-sm text-red-500 ml-8">{getError('agreeToTerms')}</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -593,7 +862,7 @@ const BookNow = () => {
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-300 font-semibold"
+                    className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-300 font-semibold cursor-pointer"
                   >
                     ← Previous
                   </button>
@@ -611,7 +880,7 @@ const BookNow = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`px-8 py-3 bg-gradient-to-r from-orange-800 to-orange-500 text-white rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold ml-auto flex items-center gap-2 ${
+                    className={`px-8 py-3 bg-gradient-to-r from-orange-800 to-orange-500 text-white rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold ml-auto flex items-center gap-2 cursor-pointer ${
                       isSubmitting ? "opacity-70 cursor-not-allowed" : ""
                     }`}
                   >

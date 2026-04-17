@@ -73,3 +73,4 @@ const Nav = ({ openNav }: Props) => {
 };
 
 export default Nav;
+  

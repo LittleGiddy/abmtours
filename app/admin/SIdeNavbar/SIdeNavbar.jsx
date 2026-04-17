@@ -13,14 +13,13 @@ import {
   MdOutlineTravelExplore,
   MdOutlineBookmarkBorder,
   MdSpaceDashboard,
-
-  MdOutlinePhotoLibrary, // Added icon for Gallery
-
+  MdOutlinePhotoLibrary,
+  MdOutlineAdminPanelSettings, // Add this icon
 } from "react-icons/md";
 import { BiMessageSquareDots } from "react-icons/bi";
 import { IoMdStarOutline } from "react-icons/io";
 
-function SideNavbar() {
+function SIdeNavbar() {
   return (
     <Disclosure as="nav">
       {({ open }) => (
@@ -58,17 +57,17 @@ function SideNavbar() {
 
               {/* Navigation Items */}
               <div className="my-4 border-b border-gray-100 pb-4 w-full">
-                <MenuItem icon={<MdSpaceDashboard/>} label="Dashboard" path="/admin/Dashboard" />
-
+                <MenuItem icon={<MdSpaceDashboard />} label="Dashboard" path="/admin/Dashboard" />
                 <MenuItem icon={<MdOutlineBookmarkBorder />} label="Bookings" path="/admin/Bookings" />
-                <MenuItem icon={<IoMdStarOutline />} label="Popular Destinations" path="#" />
+                <MenuItem icon={<IoMdStarOutline />} label="Reviews" path="/admin/reviews" />
+                <MenuItem icon={<MdOutlinePhotoLibrary />} label="Gallery" path="/admin/gallery" />
                 <MenuItem icon={<BiMessageSquareDots />} label="Messages" path="/admin/Messages" />
-                <MenuItem icon={<MdOutlineMapsHomeWork />} label="Desired Place" path="#" />
-                <MenuItem icon={<MdOutlineTravelExplore />} label="Tours and Safaris" path="#" />
-                <MenuItem icon={<MdOutlineLocationOn />} label="Destinations" path="#" />
-                <MenuItem icon={<MdOutlinePhotoLibrary />} label="Gallery" path="#" />
-
-
+                <MenuItem icon={<MdOutlineMapsHomeWork />} label="Desired Place" path="/admin/desired-place" />
+                <MenuItem icon={<MdOutlineTravelExplore />} label="Tours and Safaris" path="/admin/tours" />
+                <MenuItem icon={<MdOutlineLocationOn />} label="Destinations" path="/admin/destinations" />
+                
+                {/* Setup Link - Just add this one line */}
+                <MenuItem icon={<MdOutlineAdminPanelSettings />} label="Setup" path="/admin/setup" />
               </div>
 
               {/* Logout */}
@@ -76,7 +75,7 @@ function SideNavbar() {
                 <MenuItem
                   icon={<MdOutlineLogout />}
                   label="Logout"
-                  path="/admin-login/login"
+                  path="/admin-login"
                   extraClasses="border border-gray-200"
                 />
               </div>
@@ -109,7 +108,4 @@ const MenuItem = ({ icon, label, path, extraClasses = "" }) => {
   );
 };
 
-export default SideNavbar;
-
-
-
+export default SIdeNavbar;
