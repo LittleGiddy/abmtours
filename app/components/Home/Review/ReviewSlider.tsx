@@ -218,7 +218,7 @@ const Reviews = () => {
           className="text-amber-600 hover:text-amber-700 text-sm flex items-center gap-1 mx-auto transition-colors font-medium cursor-pointer"
         >
           <FaGoogle size={12} />
-          View all {totalRatings} reviews on Google
+          View more reviews
           <FaExternalLinkAlt size={10} />
         </button>
       </div>
