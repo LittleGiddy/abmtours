@@ -961,8 +961,9 @@ const BookNow = () => {
                 <p className="text-sm text-gray-500">Expert travel planners</p>
               </div>
 
-              <AdsterraBanner />
+              
             </div>
+            <AdsterraBanner />
           </div>
         </div>
       </div>
