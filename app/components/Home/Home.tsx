@@ -24,8 +24,8 @@ const Home = () => {
       <Review />
       <News />
       <FAQAccordion />
-      <BestTimeToVisit />
       <AdsterraBanner />
+      <BestTimeToVisit />
       <SendUsEmailMain />
       
    
