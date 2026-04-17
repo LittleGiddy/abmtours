@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
-    const client = await clientPromise;
+      const client = await getClientPromise(); // ✅ called at runtime
     const db = client.db('abmtours');
     
     // Check if admin already exists

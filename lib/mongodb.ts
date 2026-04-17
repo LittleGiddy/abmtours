@@ -1,11 +1,5 @@
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI;
-
-if (!uri) {
-  throw new Error('Please define MONGODB_URI environment variable');
-}
-
 const options = {
   tls: true,
   connectTimeoutMS: 10000,
@@ -17,19 +11,23 @@ declare const global: typeof globalThis & {
   _mongoClientPromise?: Promise<MongoClient>;
 };
 
-let clientPromise: Promise<MongoClient>;
+export function getClientPromise(): Promise<MongoClient> {
+  const uri = process.env.MONGODB_URI;
 
-if (process.env.NODE_ENV === 'development') {
-  // In development, reuse the global connection to avoid too many connections
-  if (!global._mongoClientPromise) {
-    const client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect();
+  // ✅ Check happens at runtime, not build time
+  if (!uri) {
+    throw new Error('Please define MONGODB_URI environment variable');
   }
-  clientPromise = global._mongoClientPromise;
-} else {
-  // In production (Vercel), create a fresh connection per cold start
-  const client = new MongoClient(uri, options);
-  clientPromise = client.connect();
-}
 
-export default clientPromise;
+  if (process.env.NODE_ENV === 'development') {
+    if (!global._mongoClientPromise) {
+      const client = new MongoClient(uri, options);
+      global._mongoClientPromise = client.connect();
+    }
+    return global._mongoClientPromise;
+  }
+
+  // Production: fresh connection per cold start
+  const client = new MongoClient(uri, options);
+  return client.connect();
+}
