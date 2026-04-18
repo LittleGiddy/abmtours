@@ -55,22 +55,13 @@ const beachVacation = [
   },
 ];
 
-const fishingSafari = [
-  {
-    id: 7,
-    title: "Fishing Safari",
-    description: "Catch legendary Nile perch in remote Tanzanian waters.",
-    image: "/images/fishing1.jpg",
-    path: "/safaris/fishing",
-  },
-];
 
 const ToursAndSafaris = () => {
   const sections = [
     { title: "Northern Circuit", data: northernCircuit },
     { title: "Southern Circuit", data: southernCircuit },
     { title: "Beach Vacation", data: beachVacation },
-    { title: "Fishing", data: fishingSafari },
+    
   ];
 
   return (
