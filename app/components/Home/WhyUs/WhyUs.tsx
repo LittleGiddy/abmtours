@@ -2,67 +2,37 @@ import React from "react";
 import SectionHeading from "../../Helper/SectionHeading";
 import WhyUsCard from "./WhyUsCard";
 
-
 const WhyUs = () => {
   return (
-    <div className=" pt-16 pb-24">
-      {/* section heading */}
-      <SectionHeading heading="Why Travel with ABM Tours and Safaris Ltd?" tagline="" />
+    <section className="relative py-24 overflow-hidden">
+      {/* Full‑width savanna background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25"
+        style={{ backgroundImage: "url('/images/overlay-texture.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-950/30 via-amber-900/20 to-white/60"></div>
+      </div>
 
-      <div className="grid w-[80%] mx-auto grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 items-center mt-20">
-        {/* Top Three Icons */}
-        
-        <div>
-          <WhyUsCard
-            image="/images/Cultural.svg"
-            title="Authentic cultural and safari experiences"
-            description="Experience the rich culture and breathtaking wildlife of Tanzania through immersive safaris, traditional encounters, and ethical tourism that honors local heritage."
-          />
-        </div>
-        <div>
-          <WhyUsCard
-            image="/images/handshake.svg"
-            title="Strong partnerships for high-quality service"
-            description="We collaborate with trusted partners to ensure top-quality services, offering seamless, reliable, and enriching travel experiences for every guest."
-          />
-        </div>
-        <div>
-          <WhyUsCard
-            image="/images/Ecosystem.svg"
-            title="Commitment to eco-tourism and sustainability"
-            description="Dedicated to eco-friendly tourism, we promote sustainability by supporting conservation efforts and minimizing environmental impact on all tours."
-          />
-        </div>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <SectionHeading
+          heading="Why Travel with ABM Tours and Safaris Ltd?"
+          className="text-white drop-shadow-lg"
+        />
 
-        {/* Thin Separator Line */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-3">
-          <hr className="border-t border-gray-300 w-full mx-auto" />
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mt-16">
+          {/* All 6 cards as before */}
+          <WhyUsCard image="/images/Cultural.svg" title="Authentic Cultural & Safari Experiences" description="Step into the rhythm of Tanzania – from Maasai villages to the roar of lions at dawn." />
+          <WhyUsCard image="/images/handshake.svg" title="Strong Partnerships, Premium Service" description="We've curated the finest lodges, expert guides, and eco‑friendly transport." />
+          <WhyUsCard image="/images/Ecosystem.svg" title="Eco‑Tourism & Sustainability" description="We tread lightly, leaving only footprints. Your adventure directly supports conservation." />
+          
 
-        {/* Bottom Three Icons */}
-        <div>
-          <WhyUsCard
-            image="/images/affordable.svg"
-            title="Affordable customized tour packages"
-            description="Enjoy tailor-made tour packages designed to fit your budget, ensuring a personalized, unforgettable experience without compromising on quality."
-          />
-        </div>
-        <div className="lg:col-span-1 flex justify-center">
-          <WhyUsCard
-            image="/images/Guides.svg"
-            title="Passionate and knowledgeable guides"
-            description="Our expert guides are passionate and knowledgeable, providing insightful, engaging, and enriching experiences that bring every journey to life."
-          />
-        </div>
-        <div className="lg:col-span-1 flex justify-center">
-          <WhyUsCard
-            image="/images/safety.svg"
-            title="Safety and customer satisfaction"
-            description="We prioritize your safety and comfort, ensuring every journey is secure and stress-free with well-maintained vehicles and professional guides."
-          />
+
+          <WhyUsCard image="/images/affordable.svg" title="Affordable, Tailor‑Made Packages" description="Luxury is personal. We design bespoke safaris that fit your dreams – and your budget." />
+          <WhyUsCard image="/images/Guides.svg" title="Passionate, Expert Guides" description="Our guides are walking encyclopedias of the bush, master storytellers, and guardians of your safety." />
+          <WhyUsCard image="/images/safety.svg" title="Safety & Total Satisfaction" description="From GPS‑tracked vehicles to 24/7 support, your peace of mind is our north star." />
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
