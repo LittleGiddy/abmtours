@@ -2,16 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-type Params = {
-  params: Promise<{ id: string }> | { id: string };
-};
-
 export async function PUT(
   request: NextRequest,
-  context: Params
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
     const body = (await request.json()) as { alt?: string; order?: number };
     const { alt, order } = body;
 
@@ -37,10 +33,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: Params
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
     const client = await clientPromise();
     const db = client.db('abmtours');
     const collection = db.collection('destinationimages');
