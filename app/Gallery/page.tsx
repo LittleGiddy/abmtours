@@ -1,118 +1,278 @@
-// components/Gallery.tsx
+// app/Gallery/page.tsx (or components/Gallery.tsx)
 "use client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 
-const galleryImages = [
-  { id: 1, src: "/images/Wildlife.jpg", alt: "Wildlife Safari", category: "safari" },
-  { id: 2, src: "/images/ZnzBeach.jpg", alt: "Zanzibar Beach", category: "beach" },
-  { id: 3, src: "/images/Kilimanjaro3.jpg", alt: "Mount Kilimanjaro", category: "mountain" },
-  { id: 4, src: "/images/Maasai2.jpg", alt: "Maasai Culture", category: "culture" },
-  { id: 5, src: "/images/water.jpg", alt: "Serengeti Sunset", category: "safari" },
-  { id: 6, src: "/images/water.jpg", alt: "Pristine Waters", category: "beach" },
-  { id: 7, src: "/images/water.jpg", alt: "Kilimanjaro Trek", category: "mountain" },
-  { id: 8, src: "/images/Maasai.jpg", alt: "Traditional Dance", category: "culture" },
-];
+interface GalleryImage {
+  _id: string;
+  url: string;
+  alt: string;
+  caption: string;
+  category: string;
+  order: number;
+}
 
-const Gallery = () => {
-  const [activeImage, setActiveImage] = useState<number | null>(null);
+const categoryIcons: Record<string, string> = {
+  safari: "🦁",
+  beach: "🏖️",
+  mountain: "⛰️",
+  culture: "🎭",
+};
 
-  const handleImagePress = (id: number) => {
-    setActiveImage(activeImage === id ? null : id);
+const ITEMS_PER_PAGE = 6;
+
+export default function Gallery() {
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [activeTab, setActiveTab] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/gallery")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch gallery");
+        return res.json();
+      })
+      .then((data) => {
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setImages(data);
+        } else {
+          console.error("API did not return an array:", data);
+          setImages([]);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("Could not load gallery. Please try again later.");
+        setLoading(false);
+      });
+  }, []);
+
+  const categories = useMemo(() => {
+    if (!Array.isArray(images)) return [];
+    const cats = new Set(images.map((img) => img.category));
+    return Array.from(cats);
+  }, [images]);
+
+  const filteredImages = useMemo(() => {
+    if (!Array.isArray(images)) return [];
+    if (activeTab === "all") return images;
+    return images.filter((img) => img.category === activeTab);
+  }, [images, activeTab]);
+
+  const totalPages = Math.ceil(filteredImages.length / ITEMS_PER_PAGE);
+  const paginatedImages = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredImages.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredImages, currentPage]);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
   };
 
+  if (loading) {
+    return (
+      <div className="py-20 text-center text-gray-500">Loading gallery...</div>
+    );
+  }
+
+  if (error) {
+    return <div className="py-20 text-center text-red-500">{error}</div>;
+  }
+
+  if (images.length === 0) {
+    return (
+      <div className="py-20 text-center text-gray-500">
+        No gallery images yet. Check back soon!
+      </div>
+    );
+  }
+
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-100 to-white">
-      <div className="container mx-auto px-4">
-        {/* Header with animation */}
+    <section className="py-20 bg-gradient-to-br from-slate-50 via-white to-amber-50/30">
+      <div className="container mx-auto px-4 md:px-8">
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-blue-950 mb-4">Tanzania Through Our Lens</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore breathtaking moments from our adventures across Tanzania&apos;s most iconic landscapes.
+          <h2 className="text-4xl md:text-5xl font-bold text-blue-950 mb-4 font-serif">
+            Tanzania Through Our Lens
+          </h2>
+          <div className="w-24 h-1 bg-amber-500 mx-auto mb-6 rounded-full" />
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            A visual journey into the soul of Africa.
           </p>
         </motion.div>
 
-        {/* Interactive Filter Buttons */}
-        <motion.div 
-          className="flex flex-wrap justify-center gap-4 mb-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ staggerChildren: 0.1 }}
-        >
-          {['all', 'safari', 'beach', 'mountain', 'culture'].map((category) => (
-            <motion.button
-              key={category}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-6 py-2 rounded-full bg-white shadow-md text-blue-950 capitalize transition-all"
+        {/* Tabs */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          <button
+            onClick={() => handleTabChange("all")}
+            className={`px-6 py-3 rounded-full text-base font-medium transition-all ${
+              activeTab === "all"
+                ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg"
+                : "bg-white/70 text-gray-700 hover:bg-amber-50"
+            }`}
+          >
+            🌍 All
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => handleTabChange(cat)}
+              className={`px-6 py-3 rounded-full text-base font-medium transition-all ${
+                activeTab === cat
+                  ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg"
+                  : "bg-white/70 text-gray-700 hover:bg-amber-50"
+              }`}
             >
-              {category}
-            </motion.button>
-          ))}
-        </motion.div>
-
-        {/* Masonry Grid Gallery */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-          {galleryImages.map((image) => (
-            <motion.div
-              key={image.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-              transition={{ duration: 0.6 }}
-              whileHover={{ scale: 1.02 }}
-              className="break-inside-avoid relative group overflow-hidden rounded-xl shadow-lg"
-              onClick={() => handleImagePress(image.id)}
-              onTouchStart={() => handleImagePress(image.id)}
-            >
-              <Image
-                src={image.src}
-                alt={image.alt}
-                width={600}
-                height={400}
-                className={`w-full h-auto transition-transform duration-500 ${
-                  activeImage === image.id ? 'scale-110' : 'group-hover:scale-110'
-                }`}
-              />
-              {/* Overlay Effect */}
-              <div className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent ${
-                activeImage === image.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-              } transition-opacity duration-300 flex items-end p-6`}>
-                <div className={`${
-                  activeImage === image.id ? 'translate-y-0' : 'translate-y-4 group-hover:translate-y-0'
-                } transition-transform duration-300`}>
-                  <h3 className="text-white text-xl font-bold">{image.alt}</h3>
-                  <span className="inline-block mt-1 px-3 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full">
-                    {image.category}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
+              {categoryIcons[cat] || "📸"} {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
           ))}
         </div>
 
-        {/* CTA with Animation */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          viewport={{ once: true }}
-          className="text-center mt-16"
-        >
-          <button className="px-8 py-3 bg-blue-950 text-white rounded-full font-medium hover:bg-blue-800 transition-colors shadow-lg hover:shadow-xl">
-            View More Memories
-          </button>
-        </motion.div>
+        {/* Grid */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab + currentPage}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {paginatedImages.map((img, idx) => (
+              <motion.div
+                key={img._id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.05 }}
+                whileHover={{ y: -5 }}
+                className="group relative rounded-2xl overflow-hidden shadow-md cursor-pointer"
+                onClick={() => setSelectedImage(img)}
+              >
+                <div className="relative aspect-[4/3] bg-gray-200">
+                  <Image
+                    src={img.url}
+                    alt={img.alt}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                  {/* Overlay with caption (visible on hover) */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-5">
+                    <h3 className="text-white text-xl font-bold drop-shadow-md">
+                      {img.alt}
+                    </h3>
+                    {img.caption && (
+                      <p className="text-white/90 text-sm mt-1 line-clamp-2">
+                        {img.caption}
+                      </p>
+                    )}
+                    <span className="inline-block mt-2 px-3 py-1 text-xs font-semibold bg-amber-600 text-white rounded-full w-fit">
+                      {categoryIcons[img.category]} {img.category}
+                    </span>
+                  </div>
+                </div>
+                {/* Caption also visible below image */}
+                {img.caption && (
+                  <div className="p-3 text-center text-sm text-gray-600 italic border-t border-gray-100">
+                    {img.caption}
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-12">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 rounded border disabled:opacity-50"
+            >
+              Prev
+            </button>
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`w-10 h-10 rounded-full ${
+                  currentPage === i + 1
+                    ? "bg-amber-600 text-white"
+                    : "bg-white border"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 rounded border disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
+
+        {/* Lightbox Modal – high z-index */}
+        <AnimatePresence>
+          {selectedImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedImage(null)}
+              className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 cursor-pointer"
+            >
+              <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.8 }}
+                className="relative max-w-5xl w-full bg-white rounded-2xl overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="relative aspect-video">
+                  <Image
+                    src={selectedImage.url}
+                    alt={selectedImage.alt}
+                    fill
+                    className="object-contain"
+                    sizes="90vw"
+                  />
+                </div>
+                <div className="p-5">
+                  <h3 className="text-2xl font-bold">{selectedImage.alt}</h3>
+                  {selectedImage.caption && (
+                    <p className="text-gray-600 mt-2 italic">
+                      {selectedImage.caption}
+                    </p>
+                  )}
+                  <span className="inline-block mt-3 px-3 py-1 text-sm bg-amber-100 text-amber-800 rounded-full">
+                    {categoryIcons[selectedImage.category]} {selectedImage.category}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setSelectedImage(null)}
+                  className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition"
+                >
+                  ✕
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
-};
-
-export default Gallery;
+}
