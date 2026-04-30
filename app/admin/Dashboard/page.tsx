@@ -6,11 +6,9 @@ import {
   MdEventNote, 
   MdRefresh, 
   MdDashboard, 
-  MdPeople, 
   MdTrendingUp,
   MdAttachMoney,
   MdVisibility,
-  MdEdit,
   MdAdd
 } from 'react-icons/md';
 import { formatDistanceToNow } from 'date-fns';

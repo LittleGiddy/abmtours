@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { getCroppedImg } from "@/lib/cropImage";
@@ -45,8 +45,16 @@ const Toast = ({ message, type, onClose }: { message: string; type: "success" | 
   );
 };
 
-// Confirmation modal
-const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }: any) => {
+// Confirmation modal – fixed the `any` type
+interface ConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+}
+
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }: ConfirmModalProps) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -71,7 +79,6 @@ export default function ManageDestinations() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [altText, setAltText] = useState("");
-  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -100,7 +107,7 @@ export default function ManageDestinations() {
       if (!res.ok) throw new Error();
       const data = await res.json();
       setImages(data);
-    } catch (err) {
+    } catch {
       setToast({ message: "Failed to load images", type: "error" });
     } finally {
       setIsLoading(false);
@@ -117,7 +124,7 @@ export default function ManageDestinations() {
     }
   };
 
-  const onCropComplete = (croppedArea: Area, croppedAreaPixels: Area) => {
+  const onCropComplete = (_croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   };
 
@@ -140,7 +147,7 @@ export default function ManageDestinations() {
       } else {
         throw new Error();
       }
-    } catch (error) {
+    } catch {
       setToast({ message: "Upload failed", type: "error" });
     } finally {
       setUploading(false);
