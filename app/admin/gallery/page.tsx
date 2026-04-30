@@ -319,7 +319,7 @@ export default function AdminGallery() {
       {filteredImages.length === 0 && !isLoading && (
         <div className="text-center py-12 text-gray-500">
           <ImageIcon className="mx-auto mb-3 opacity-50" size={48} />
-          <p className="text-sm">No images found. Click "Upload Image" to add your first gallery photo.</p>
+          <p className="text-sm">No images found. Click &quot;Upload Image&quot; to add your first gallery photo.</p>
         </div>
       )}
     </div>
