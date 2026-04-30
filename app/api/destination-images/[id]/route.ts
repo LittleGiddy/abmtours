@@ -2,28 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-// Define a type for the allowed update fields (no `any`)
-type AllowedUpdate = {
-  alt?: string;
-  order?: number;
-  // add other updatable fields here if needed
-  [key: string]: unknown; // only if you really need dynamic keys; better to list them explicitly
+type Params = {
+  params: Promise<{ id: string }> | { id: string };
 };
 
 export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: Params
 ) {
   try {
-    const { id } = params;
-    const body = (await req.json()) as AllowedUpdate;
+    const { id } = await context.params;
+    const body = (await request.json()) as { alt?: string; order?: number };
     const { alt, order } = body;
 
     const client = await clientPromise();
     const db = client.db('abmtours');
     const collection = db.collection('destinationimages');
 
-    const updateFields: Partial<AllowedUpdate> = {};
+    const updateFields: { alt?: string; order?: number } = {};
     if (alt !== undefined) updateFields.alt = alt;
     if (order !== undefined) updateFields.order = order;
 
@@ -33,19 +29,18 @@ export async function PUT(
     );
 
     return NextResponse.json({ success: true });
-  } catch (err) {   // ✅ renamed to `err` to avoid "unused variable" if you don't need it
-    // If you need the error, use `err`; otherwise omit the parameter
-    console.error('Update error:', err);
+  } catch (err) {
+    console.error('PUT error:', err);
     return NextResponse.json({ error: 'Update failed' }, { status: 500 });
   }
 }
 
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: Params
 ) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
     const client = await clientPromise();
     const db = client.db('abmtours');
     const collection = db.collection('destinationimages');
@@ -53,7 +48,7 @@ export async function DELETE(
     await collection.deleteOne({ _id: new ObjectId(id) });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('Delete error:', err);
+    console.error('DELETE error:', err);
     return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
   }
 }
