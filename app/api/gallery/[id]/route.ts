@@ -3,6 +3,14 @@ import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { del } from '@vercel/blob';
 
+// Define the shape of updatable fields
+type UpdateData = {
+  alt?: string;
+  caption?: string;
+  category?: string;
+  order?: number;
+};
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -37,13 +45,13 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { alt, caption, category, order } = body;   // ✅ include caption
+    const { alt, caption, category, order } = body as UpdateData;
 
     const client = await clientPromise();
     const db = client.db('abmtours');
     const collection = db.collection('gallery');
 
-    const updateFields: any = {};
+    const updateFields: UpdateData = {};
     if (alt !== undefined) updateFields.alt = alt;
     if (caption !== undefined) updateFields.caption = caption;
     if (category !== undefined) updateFields.category = category;

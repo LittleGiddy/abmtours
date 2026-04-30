@@ -18,6 +18,9 @@ interface GalleryImage {
   createdAt: string;
 }
 
+// Type for updatable fields
+type UpdateableFields = Partial<Pick<GalleryImage, 'alt' | 'caption' | 'category' | 'order'>>;
+
 const categories = [
   { value: "safari", label: "🦁 Safari" },
   { value: "beach", label: "🏖️ Beach" },
@@ -119,8 +122,9 @@ export default function AdminGallery() {
         const err = await res.json();
         throw new Error(err.error);
       }
-    } catch (err: any) {
-      setToast({ message: err.message || "Upload failed", type: "error" });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Upload failed";
+      setToast({ message: errorMessage, type: "error" });
     } finally {
       setUploading(false);
     }
@@ -137,7 +141,7 @@ export default function AdminGallery() {
     setDeleteTarget(null);
   };
 
-  const updateImage = async (id: string, data: { alt?: string; caption?: string; category?: string }) => {
+  const updateImage = async (id: string, data: UpdateableFields) => {
     const res = await fetch(`/api/gallery/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -274,9 +278,8 @@ export default function AdminGallery() {
               </div>
             </div>
             <div className="p-3">
-              {/* Caption – scrollable if too long */}
               {img.caption && (
-                <div className="max-h-16 overflow-y-auto text-xs text-gray-600 italic mb-1 pr-1 scrollbar-thin">
+                <div className="max-h-16 overflow-y-auto text-xs text-gray-600 italic mb-1 pr-1">
                   {img.caption}
                 </div>
               )}
