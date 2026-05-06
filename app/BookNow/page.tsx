@@ -219,27 +219,26 @@ export default function BookNow() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormDataType, string>>>({});
   const [touchedFields, setTouchedFields] = useState<Partial<Record<keyof FormDataType, boolean>>>({});
 
-  // Play success tone using Web Audio API – typed version
-  const playSuccessTone = () => {
-    try {
-      // Type-safe access to AudioContext
-      const AudioCtor = (window as AudioContextWithWebkit).AudioContext || (window as AudioContextWithWebkit).webkitAudioContext;
-      if (!AudioCtor) return;
-      const audioCtx = new AudioCtor();
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      oscillator.frequency.value = 880; // A5 note
-      gainNode.gain.value = 0.3;
-      oscillator.type = "sine";
-      oscillator.start();
-      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
-      oscillator.stop(audioCtx.currentTime + 0.5);
-    } catch (err) {
-      console.warn("Could not play success sound:", err);
-    }
-  };
+  // Inside playSuccessTone function, replace with:
+const playSuccessTone = () => {
+  try {
+    const AudioCtor = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtor) return;
+    const audioCtx = new AudioCtor();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    oscillator.frequency.value = 880;
+    gainNode.gain.value = 0.3;
+    oscillator.type = "sine";
+    oscillator.start();
+    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+    oscillator.stop(audioCtx.currentTime + 0.5);
+  } catch (err) {
+    console.warn("Could not play success sound:", err);
+  }
+};
 
   // Fetch packages
   useEffect(() => {

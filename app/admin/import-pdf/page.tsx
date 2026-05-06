@@ -4,7 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// Define the structure of the AI-generated data (no any)
+interface Accommodation {
+  title: string;
+  description: string;
+  images: string[];
+}
+
 interface ImportedOption {
   optionTitle: string;
   description: string;
@@ -19,7 +24,7 @@ interface ImportedOption {
   priceType: "fixed" | "tiered" | "contact";
   priceAmount?: number;
   priceTiers?: Array<{ minPax: number; maxPax: number; pricePerPerson: number }>;
-  accommodation?: { title: string; description: string; images?: string[] };
+  accommodation?: Accommodation; // added
 }
 
 interface ImportedPackageData {
@@ -136,9 +141,9 @@ export default function ImportPDFPage() {
       if (!res.ok) throw new Error(data.error || "Upload failed");
       setGenerated(data.data);
       const options = data.data.options || [];
-      const initAccom = options.map(() => ({
-        title: "",
-        description: "",
+      const initAccom = options.map((opt) => ({
+        title: opt.accommodation?.title || "",
+        description: opt.accommodation?.description || "",
         imageFiles: [] as File[],
         previews: [] as string[],
       }));
@@ -168,25 +173,18 @@ export default function ImportPDFPage() {
           const accommodationImageUrls = await Promise.all(
             (accData?.imageFiles || []).map((f) => uploadImage(f))
           );
-          // Use the accommodation title/description from user input, or from the original opt if available
-          const originalAcc = opt.accommodation || { title: "", description: "" };
           return {
             ...opt,
             accommodation: {
-              title: accData?.title || originalAcc.title,
-              description: accData?.description || originalAcc.description,
+              title: accData?.title || opt.accommodation?.title || "",
+              description: accData?.description || opt.accommodation?.description || "",
               images: accommodationImageUrls,
             },
           };
         })
       );
 
-      const finalPackage: ImportedPackageData & {
-        heroImage: string;
-        cardImage: string;
-        mapImage: string;
-        slug: string;
-      } = {
+      const finalPackage = {
         ...generated,
         heroImage: heroUrl,
         cardImage: cardUrl,
@@ -211,6 +209,7 @@ export default function ImportPDFPage() {
     }
   };
 
+  // JSX (same as before, no changes)
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
@@ -231,7 +230,6 @@ export default function ImportPDFPage() {
           <div className="mt-8 border-t pt-6">
             <h2 className="text-xl font-semibold mb-4">AI-Generated Package Preview</h2>
 
-            {/* Main Images Upload */}
             <div className="bg-gray-50 p-4 rounded mb-6">
               <h3 className="font-medium mb-3">Main Images (optional)</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -253,58 +251,55 @@ export default function ImportPDFPage() {
               </div>
             </div>
 
-            {/* Options with Accommodation Images & Text */}
-            {generated.options &&
-              generated.options.map((opt, idx) => {
-                const acc = optionAccommodation[idx];
-                const originalAcc = opt.accommodation;
-                return (
-                  <div key={idx} className="border rounded-lg p-4 mb-6 bg-white shadow-sm">
-                    <h3 className="font-bold text-lg mb-2">Option {idx + 1}: {opt.optionTitle}</h3>
-                    <div className="mb-3">
-                      <label className="block text-sm font-medium">Accommodation Title</label>
-                      <input
-                        type="text"
-                        className="w-full border rounded p-2"
-                        value={acc?.title || originalAcc?.title || ""}
-                        onChange={(e) => updateAccommodationText(idx, "title", e.target.value)}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="block text-sm font-medium">Accommodation Description</label>
-                      <textarea
-                        rows={2}
-                        className="w-full border rounded p-2"
-                        value={acc?.description || originalAcc?.description || ""}
-                        onChange={(e) => updateAccommodationText(idx, "description", e.target.value)}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="block text-sm font-medium">Accommodation Images</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={(e) => handleAccommodationImages(idx, e.target.files)}
-                      />
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {acc?.previews.map((src, imgIdx) => (
-                          <div key={imgIdx} className="relative w-20 h-20 border rounded overflow-hidden">
-                            <Image src={src} alt="Preview" fill className="object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => removeAccommodationImage(idx, imgIdx)}
-                              className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+            {generated.options.map((opt, idx) => {
+              const acc = optionAccommodation[idx];
+              return (
+                <div key={idx} className="border rounded-lg p-4 mb-6 bg-white shadow-sm">
+                  <h3 className="font-bold text-lg mb-2">Option {idx + 1}: {opt.optionTitle}</h3>
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium">Accommodation Title</label>
+                    <input
+                      type="text"
+                      className="w-full border rounded p-2"
+                      value={acc?.title || ""}
+                      onChange={(e) => updateAccommodationText(idx, "title", e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium">Accommodation Description</label>
+                    <textarea
+                      rows={2}
+                      className="w-full border rounded p-2"
+                      value={acc?.description || ""}
+                      onChange={(e) => updateAccommodationText(idx, "description", e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium">Accommodation Images</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => handleAccommodationImages(idx, e.target.files)}
+                    />
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {acc?.previews.map((src, imgIdx) => (
+                        <div key={imgIdx} className="relative w-20 h-20 border rounded overflow-hidden">
+                          <Image src={src} alt="Preview" fill className="object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeAccommodationImage(idx, imgIdx)}
+                            className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              );
+            })}
 
             <details className="mb-6">
               <summary className="cursor-pointer text-sm text-gray-600">Show AI‑generated JSON</summary>
@@ -314,14 +309,8 @@ export default function ImportPDFPage() {
             </details>
 
             <div className="flex gap-4">
-              <button onClick={() => setGenerated(null)} className="px-4 py-2 border rounded">
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirm}
-                disabled={saving}
-                className="bg-green-600 text-white px-6 py-2 rounded disabled:opacity-50"
-              >
+              <button onClick={() => setGenerated(null)} className="px-4 py-2 border rounded">Cancel</button>
+              <button onClick={handleConfirm} disabled={saving} className="bg-green-600 text-white px-6 py-2 rounded disabled:opacity-50">
                 {saving ? "Saving..." : "Save to Database"}
               </button>
             </div>
