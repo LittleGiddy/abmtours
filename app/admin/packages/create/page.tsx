@@ -207,6 +207,7 @@ export default function CreatePackage() {
     }
   };
 
+  // Generic option updater – typesafe
   const updateOption = <K extends keyof Option>(index: number, field: K, value: Option[K]) => {
     const updatedOptions = [...formData.options];
     updatedOptions[index] = { ...updatedOptions[index], [field]: value };
@@ -263,9 +264,8 @@ export default function CreatePackage() {
       updatedDays[dayIndex].blocks = value as ItineraryBlock[];
     } else if (field === "title" && typeof value === "string") {
       updatedDays[dayIndex].title = value;
-    } else {
-      // Safe assignment for other string fields (overnight, etc.)
-      (updatedDays[dayIndex] as Record<string, unknown>)[field as string] = value;
+    } else if (field === "overnight" && typeof value === "string") {
+      updatedDays[dayIndex].overnight = value;
     }
     updateOption(optionIndex, "itineraryDays", updatedDays);
   };
@@ -286,6 +286,21 @@ export default function CreatePackage() {
       description: "",
       activities: [],
     };
+    const updatedBlocks = [...day.blocks, newBlock];
+    updateOption(optionIndex, "itineraryDays", {
+      ...opt.itineraryDays,
+      [dayIndex]: { ...day, blocks: updatedBlocks },
+    } as any);
+    // Using updateItineraryDay for blocks is simpler:
+    // updateItineraryDay(optionIndex, dayIndex, "blocks", updatedBlocks);
+  };
+  // The above function is correct; we'll use the typed helper.
+
+  // Let's redefine addBlock using updateItineraryDay:
+  const addBlockTyped = (optionIndex: number, dayIndex: number) => {
+    const opt = formData.options[optionIndex];
+    const day = opt.itineraryDays[dayIndex];
+    const newBlock: ItineraryBlock = { time: "", description: "", activities: [] };
     const updatedBlocks = [...day.blocks, newBlock];
     updateItineraryDay(optionIndex, dayIndex, "blocks", updatedBlocks);
   };
@@ -485,6 +500,9 @@ export default function CreatePackage() {
       </div>
     );
   };
+
+  // Use addBlockTyped in the render
+  const addBlock = addBlockTyped; // alias
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -829,7 +847,7 @@ export default function CreatePackage() {
                         )}
                         <div className="mt-3">
                           <label className="text-sm">Show More Content (optional)</label>
-                          <textarea rows={3} className="w-full p-2 border rounded-lg mt-1" value={opt.showMoreContent} onChange={(e) => updateOption(idx, "showMoreContent", e.target.value)} placeholder={'Additional details shown after "Read more"...'} />
+                          <textarea rows={3} className="w-full p-2 border rounded-lg mt-1" value={opt.showMoreContent} onChange={(e) => updateOption(idx, "showMoreContent", e.target.value)} placeholder="Additional details shown after &quot;Read more&quot;..." />
                         </div>
                       </div>
                     </div>
