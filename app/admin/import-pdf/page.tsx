@@ -4,6 +4,24 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+// Define the structure of the AI-generated data (no any)
+interface ImportedOption {
+  optionTitle: string;
+  description: string;
+  activities: string;
+  itineraryDays: Array<{
+    day: number;
+    title: string;
+    blocks: Array<{ time: string; description: string; activities: string[] }>;
+    meals: string[];
+    overnight: string;
+  }>;
+  priceType: "fixed" | "tiered" | "contact";
+  priceAmount?: number;
+  priceTiers?: Array<{ minPax: number; maxPax: number; pricePerPerson: number }>;
+  accommodation?: { title: string; description: string; images?: string[] };
+}
+
 interface ImportedPackageData {
   title: string;
   category: "Northern Circuit" | "Southern Circuit" | "Beach Vacation";
@@ -12,21 +30,7 @@ interface ImportedPackageData {
   highlights: string[];
   arrivalText: string;
   quickInfo: string[];
-  options: Array<{
-    optionTitle: string;
-    description: string;
-    activities: string;
-    itineraryDays: Array<{
-      day: number;
-      title: string;
-      blocks: Array<{ time: string; description: string; activities: string[] }>;
-      meals: string[];
-      overnight: string;
-    }>;
-    priceType: "fixed" | "tiered" | "contact";
-    priceAmount?: number;
-    priceTiers?: Array<{ minPax: number; maxPax: number; pricePerPerson: number }>;
-  }>;
+  options: ImportedOption[];
   includedList?: string[];
   excludedList?: string[];
   slug?: string;
@@ -50,7 +54,6 @@ export default function ImportPDFPage() {
   const [mapPreview, setMapPreview] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // For each option, store uploaded accommodation image files and previews
   const [optionAccommodation, setOptionAccommodation] = useState<
     Array<{
       title: string;
@@ -133,9 +136,9 @@ export default function ImportPDFPage() {
       if (!res.ok) throw new Error(data.error || "Upload failed");
       setGenerated(data.data);
       const options = data.data.options || [];
-      const initAccom = options.map((opt) => ({
-        title: opt.accommodation?.title || "",
-        description: opt.accommodation?.description || "",
+      const initAccom = options.map(() => ({
+        title: "",
+        description: "",
         imageFiles: [] as File[],
         previews: [] as string[],
       }));
@@ -153,25 +156,25 @@ export default function ImportPDFPage() {
     setSaving(true);
     setError("");
     try {
-      // Upload main images
       const [heroUrl, cardUrl, mapUrl] = await Promise.all([
         heroImage ? uploadImage(heroImage) : Promise.resolve(""),
         cardImage ? uploadImage(cardImage) : Promise.resolve(""),
         mapImage ? uploadImage(mapImage) : Promise.resolve(""),
       ]);
 
-      // Upload accommodation images for each option
       const finalOptions = await Promise.all(
         generated.options.map(async (opt, idx) => {
           const accData = optionAccommodation[idx];
           const accommodationImageUrls = await Promise.all(
             (accData?.imageFiles || []).map((f) => uploadImage(f))
           );
+          // Use the accommodation title/description from user input, or from the original opt if available
+          const originalAcc = opt.accommodation || { title: "", description: "" };
           return {
             ...opt,
             accommodation: {
-              title: accData?.title || (opt as any).accommodation?.title || "",
-              description: accData?.description || (opt as any).accommodation?.description || "",
+              title: accData?.title || originalAcc.title,
+              description: accData?.description || originalAcc.description,
               images: accommodationImageUrls,
             },
           };
@@ -254,6 +257,7 @@ export default function ImportPDFPage() {
             {generated.options &&
               generated.options.map((opt, idx) => {
                 const acc = optionAccommodation[idx];
+                const originalAcc = opt.accommodation;
                 return (
                   <div key={idx} className="border rounded-lg p-4 mb-6 bg-white shadow-sm">
                     <h3 className="font-bold text-lg mb-2">Option {idx + 1}: {opt.optionTitle}</h3>
@@ -262,7 +266,7 @@ export default function ImportPDFPage() {
                       <input
                         type="text"
                         className="w-full border rounded p-2"
-                        value={acc?.title || ""}
+                        value={acc?.title || originalAcc?.title || ""}
                         onChange={(e) => updateAccommodationText(idx, "title", e.target.value)}
                       />
                     </div>
@@ -271,7 +275,7 @@ export default function ImportPDFPage() {
                       <textarea
                         rows={2}
                         className="w-full border rounded p-2"
-                        value={acc?.description || ""}
+                        value={acc?.description || originalAcc?.description || ""}
                         onChange={(e) => updateAccommodationText(idx, "description", e.target.value)}
                       />
                     </div>

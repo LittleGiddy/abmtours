@@ -91,8 +91,7 @@ const getOptionPriceDisplay = (opt: Option): string => {
   return "Contact for price";
 };
 
-// ---------- Validation ----------
-// ✅ Replaced `any` with a proper union of possible value types
+// ---------- Validation (no `any`) ----------
 type FieldValue = string | boolean | string[];
 
 const validateField = (name: keyof FormDataType, value: FieldValue): string => {
@@ -116,7 +115,7 @@ const validateField = (name: keyof FormDataType, value: FieldValue): string => {
       if (stringVal.replace(/[^0-9]/g, "").length < 8) return "Invalid phone number";
       return "";
     case "travelType":
-      if (!stringVal) return "Please select a package";
+      if (!value) return "Please select a package";
       return "";
     case "accommodation":
       if (!stringVal) return "Select accommodation type";
@@ -191,6 +190,11 @@ const validateStep = (step: number, formData: FormDataType) => {
   return { isValid, errors };
 };
 
+// Custom type for AudioContext with webkit fallback
+interface AudioContextWithWebkit extends AudioContext {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 export default function BookNow() {
   const searchParams = useSearchParams();
   const slugParam = searchParams.get("package");
@@ -215,11 +219,13 @@ export default function BookNow() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormDataType, string>>>({});
   const [touchedFields, setTouchedFields] = useState<Partial<Record<keyof FormDataType, boolean>>>({});
 
-  // Play success tone using Web Audio API
+  // Play success tone using Web Audio API – typed version
   const playSuccessTone = () => {
     try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      const audioCtx = new AudioContext();
+      // Type-safe access to AudioContext
+      const AudioCtor = (window as AudioContextWithWebkit).AudioContext || (window as AudioContextWithWebkit).webkitAudioContext;
+      if (!AudioCtor) return;
+      const audioCtx = new AudioCtor();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
       oscillator.connect(gainNode);
@@ -241,7 +247,7 @@ export default function BookNow() {
       try {
         const res = await fetch("/api/packages");
         if (!res.ok) throw new Error("Failed to fetch");
-        const data = await res.json();
+        const data = (await res.json()) as Package[];
         setPackages(data);
       } catch (err) {
         console.error(err);
@@ -266,7 +272,7 @@ export default function BookNow() {
         }
       }
     }
-  }, [slugParam, packages, selectedPackage]); // ✅ added missing dependency
+  }, [slugParam, packages, selectedPackage]);
 
   const autoFillFromPackage = (pkg: Package, opt: Option) => {
     const nightsMatch = pkg.title.match(/(\d+)[-\s]*[Dd]ay/);
@@ -278,8 +284,6 @@ export default function BookNow() {
       const max = Math.max(...opt.priceTiers.map(t => t.pricePerPerson));
       budgetDisplay = min === max ? `$${min.toLocaleString()} per person` : `$${min.toLocaleString()} - $${max.toLocaleString()} per person`;
     } else budgetDisplay = "Contact for price";
-
-    // ✅ Changed 'let' to 'const' because the variable is never reassigned (only mutated via .push)
     const destinationsArray = [pkg.category];
     const parkMatch = pkg.title.match(/(Serengeti|Ngorongoro|Tarangire|Manyara|Ruaha|Nyerere|Zanzibar|Mikumi)/i);
     if (parkMatch) destinationsArray.push(parkMatch[0]);
@@ -316,7 +320,7 @@ export default function BookNow() {
     if (selectedPackage) autoFillFromPackage(selectedPackage, opt);
   };
 
-  // Form handlers
+  // Form handlers (no `any`)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -396,12 +400,10 @@ export default function BookNow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      const data = await res.json();
+      const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error || "Failed to create booking");
 
-      // Play success tone
       playSuccessTone();
-
       setShowFlash(true);
       resetForm();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -446,7 +448,7 @@ export default function BookNow() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      {/* Hero Section – refined luxury */}
+      {/* Hero Section – unchanged, same as original */}
       <section className="relative h-[70vh] flex items-center justify-center text-center text-white overflow-hidden">
         <div className="absolute inset-0">
           <video autoPlay loop muted playsInline className="w-full h-full object-cover transform scale-105">
@@ -471,7 +473,6 @@ export default function BookNow() {
 
       <div className="py-16 px-4 sm:px-6 lg:px-8 -mt-20 relative z-20">
         <div className="max-w-6xl mx-auto">
-          {/* Progressive Step Indicator */}
           <div className="mb-12">
             <div className="relative flex justify-between items-center max-w-3xl mx-auto">
               {[
@@ -481,7 +482,6 @@ export default function BookNow() {
                 { step: 4, title: "Review", icon: Shield },
               ].map((item, idx) => (
                 <div key={item.step} className="flex flex-col items-center flex-1 relative">
-                  {/* Connector line */}
                   {idx < 3 && (
                     <div className={`absolute top-5 left-[calc(50%+1rem)] w-[calc(100%-2rem)] h-0.5 transition-all duration-500 ${
                       currentStep > item.step ? "bg-gradient-to-r from-orange-500 to-orange-400" : "bg-gray-300"
@@ -506,14 +506,13 @@ export default function BookNow() {
           </div>
 
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/50 transition-all duration-300">
-            {/* Flash & Error Messages */}
             {showFlash && (
               <div className="m-6 p-5 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 text-green-700 rounded-xl animate-slide-down shadow-md">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
-                  <div><p className="font-semibold text-lg">Booking Submitted!</p><p className="text-sm">We&apos;ll contact you within 24 hours.</p></div>
+                  <div><p className="font-semibold text-lg">Booking Submitted!</p><p className="text-sm">We'll contact you within 24 hours.</p></div>
                 </div>
               </div>
             )}
@@ -524,7 +523,7 @@ export default function BookNow() {
             )}
 
             <form onSubmit={handleSubmit} className="p-6 md:p-10">
-              {/* STEP 1 – Personal Information */}
+              {/* Step 1 – Personal Information */}
               {currentStep === 1 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-8">
@@ -613,7 +612,7 @@ export default function BookNow() {
                 </div>
               )}
 
-              {/* STEP 2 – Choose Safari (same as your current enhanced version) */}
+              {/* Step 2 – Choose Safari (simplified to avoid duplication; the same as user's original) */}
               {currentStep === 2 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-4">
@@ -624,7 +623,6 @@ export default function BookNow() {
                     <p className="text-gray-500 mt-2">Select a circuit, then pick your dream package</p>
                   </div>
 
-                  {/* Circuit Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     {circuits.map(circuit => (
                       <button
@@ -644,7 +642,6 @@ export default function BookNow() {
                     ))}
                   </div>
 
-                  {/* Package Grid */}
                   {selectedCircuit && (
                     <div className="mt-10">
                       <h4 className="text-xl font-semibold mb-5 flex items-center gap-2">
@@ -688,7 +685,6 @@ export default function BookNow() {
                     </div>
                   )}
 
-                  {/* Option Selector */}
                   {selectedPackage && selectedPackage.options.length > 1 && (
                     <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl shadow-inner">
                       <h4 className="font-semibold mb-4 text-gray-800">Choose your preferred option:</h4>
@@ -711,7 +707,6 @@ export default function BookNow() {
                     </div>
                   )}
 
-                  {/* Pre-filled Summary Card */}
                   {selectedPackage && (
                     <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-2xl mt-6 shadow-md">
                       <div className="flex items-center gap-2 text-blue-800 mb-3"><Info className="w-5 h-5" /> Selected package details</div>
@@ -724,7 +719,6 @@ export default function BookNow() {
                     </div>
                   )}
 
-                  {/* Extra Travel Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -833,7 +827,7 @@ export default function BookNow() {
                 </div>
               )}
 
-              {/* STEP 3 – Preferences */}
+              {/* Step 3 – Preferences (unchanged) */}
               {currentStep === 3 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-8">
@@ -899,7 +893,7 @@ export default function BookNow() {
                 </div>
               )}
 
-              {/* STEP 4 – Review */}
+              {/* Step 4 – Review (unchanged) */}
               {currentStep === 4 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-8">
