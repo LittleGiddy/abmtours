@@ -1,7 +1,23 @@
+// app/api/create-booking/route.ts
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
+import { getClientPromise } from '@/lib/mongodb';
 import nodemailer from 'nodemailer';
+
+// Helper to format current local time (East Africa Time, UTC+3)
+const getLocalTimeString = () => {
+  return new Date().toLocaleString('en-TZ', {
+    timeZone: 'Africa/Dar_es_Salaam',
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+};
 
 export async function POST(request: Request) {
   try {
@@ -52,9 +68,10 @@ export async function POST(request: Request) {
     }
 
     // 1. SAVE TO DATABASE
-    const client = await getClientPromise(); // ✅ call it as a function  
+    const client = await getClientPromise();
     const db = client.db('abmtours');
 
+    const createdAt = new Date(); // UTC
     const bookingData = {
       firstName,
       lastName,
@@ -73,8 +90,8 @@ export async function POST(request: Request) {
       additionalInfo,
       agreeToTerms,
       agreeToInfo,
-      createdAt: new Date(),
-      status: 'pending', // Add status for admin panel
+      createdAt,
+      status: 'pending',
     };
 
     const result = await db.collection('bookings').insertOne(bookingData);
@@ -85,21 +102,37 @@ export async function POST(request: Request) {
     let emailError = null;
 
     try {
+      const localTime = getLocalTimeString();
+      const formattedDate = new Date(expectedDate).toLocaleDateString('en-TZ', {
+        timeZone: 'Africa/Dar_es_Salaam',
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 5px;">
-          <h1 style="color: #1e3a8a; text-align: center;">New Booking Request</h1>
+          <h1 style="color: #1e3a8a; text-align: center;">📋 New Booking Request</h1>
           <p style="font-size: 16px; text-align: center;">You have received a new booking request from <strong>${firstName} ${lastName}</strong>.</p>
+          <p style="text-align: center; color: #666;">Submitted on: <strong>${localTime}</strong> (East Africa Time)</p>
           
           <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+            <h3 style="margin-top: 0;">📝 Booking Details</h3>
             <p><strong>Name:</strong> ${firstName} ${lastName}</p>
             <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-            <p><strong>Travel Type:</strong> ${travelType || 'Not specified'}</p>
-            <p><strong>Expected Date:</strong> ${expectedDate || 'Not specified'}</p>
-            <p><strong>Nights:</strong> ${nights || 'Not specified'}</p>
-            <p><strong>Adults:</strong> ${adults || 'Not specified'}</p>
-            <p><strong>Children:</strong> ${children || '0'}</p>
-            <p><strong>Budget:</strong> ${budget || 'Not specified'}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            <p><strong>Travel Type:</strong> ${travelType}</p>
+            <p><strong>Expected Start Date:</strong> ${formattedDate}</p>
+            <p><strong>Nights:</strong> ${nights}</p>
+            <p><strong>Adults:</strong> ${adults}</p>
+            <p><strong>Children:</strong> ${children}</p>
+            <p><strong>Budget (USD):</strong> ${budget}</p>
+            <p><strong>Accommodation:</strong> ${accommodation}</p>
+            <p><strong>Airport Pickup:</strong> ${airportPickup}</p>
+            <p><strong>Trip Enhancements:</strong> ${tripEnhancements.length ? tripEnhancements.join(', ') : 'None'}</p>
+            <p><strong>Destinations:</strong> ${destinations.length ? destinations.join(', ') : 'None'}</p>
+            ${additionalInfo ? `<p><strong>Additional Info:</strong> ${additionalInfo}</p>` : ''}
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
@@ -109,15 +142,15 @@ export async function POST(request: Request) {
             </a>
           </div>
           
-          <p style="color: #666; font-size: 14px; text-align: center;">
-            This is an automated notification from ABM Tours booking system.
+          <p style="color: #666; font-size: 12px; text-align: center; border-top: 1px solid #eee; padding-top: 10px;">
+            This is an automated notification from ABM Tours booking system. Sent at ${localTime}.
           </p>
         </div>
       `;
 
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: 587, // Use the working port
+        port: 587,
         secure: false,
         auth: {
           user: process.env.EMAIL_USER,
@@ -131,7 +164,7 @@ export async function POST(request: Request) {
       const mailOptions = {
         from: `"ABM Tours" <${process.env.EMAIL_USER}>`,
         to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-        subject: `New Booking Request from ${firstName} ${lastName}`,
+        subject: `📅 New Booking from ${firstName} ${lastName} - ${new Date().toLocaleDateString()}`,
         html: emailHtml,
       };
 
@@ -144,7 +177,6 @@ export async function POST(request: Request) {
       // Don't fail the whole request if email fails
     }
 
-    // Return success response
     return NextResponse.json({
       success: true,
       message: 'Booking saved successfully',

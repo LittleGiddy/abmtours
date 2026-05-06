@@ -1,70 +1,54 @@
+// app/tours-and-safaris/page.tsx
 "use client";
-import React from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
-const northernCircuit = [
-  {
-    id: 1,
-    title: "Quick Serengeti Migration Adventure",
-    description: "Experience the Great Migration and abundant wildlife.",
-    image: "/images/serengeti main.jpg",
-    path: "/safaris/quickserengetimigrationadventure",
-  },
-  {
-    id: 2,
-    title: "Serengeti Romantic and Beach Gateway",
-    description: "From Wild Sunsets to Ocean Breeze",
-    image: "/images/ngorongoro.jpg",
-    path: "/safaris/serengeti-romantic-and-beach-gateway",
-  },
-  {
-    id: 3,
-    title: "Serengeti Highlight Safari",
-    description: "Experience Nature's Greatest Show on Earth",
-    image: "/images/serengetirom.jpg",
-    path: "/safaris/serengetihighlightsafari",
-  },
-];
+interface Package {
+  _id: string;
+  title: string;
+  slug: string;
+  category: string;
+  cardImage: string;
+  shortDescription: string;
+}
 
-const southernCircuit = [
-  {
-    id: 4,
-    title: "Nyerere or Ruaha Quick Gateway",
-    description: "One of Africa's largest protected areas with diverse wildlife.",
-    image: "/images/NyerereMain.jpg",
-    path: "/safaris/nyerere-or-ruaha-quick-gateway",
-  },
-  {
-    id: 5,
-    title: "Safari and Hiking Weekend Gateway",
-    description: "A remote paradise for safari lovers.",
-    image: "/images/Tourists.jpg",
-    path: "/safaris/safari-and-hiking-weekend-gateway",
-  },
-];
+export default function ToursAndSafaris() {
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-const beachVacation = [
-  {
-    id: 6,
-    title: "Zanzibar and Mafia Beach Escape",
-    description: "Relax on pristine beaches and explore rich Swahili culture.",
-    image: "/images/zanzibar1.jpg",
-    path: "/safaris/zanzibar-and-mafia-beach-escape",
-  },
-];
+  useEffect(() => {
+    fetchPackages();
+  }, []);
 
-const ToursAndSafaris = () => {
-  const sections = [
-    { title: "Northern Circuit", data: northernCircuit },
-    { title: "Southern Circuit", data: southernCircuit },
-    { title: "Beach Vacation", data: beachVacation },
-  ];
+  const fetchPackages = async () => {
+    try {
+      const res = await fetch("/api/packages");
+      if (!res.ok) throw new Error("Failed to fetch packages");
+      const data = await res.json();
+      setPackages(data);
+    } catch (err) {
+      setError("Failed to load packages");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+
+  const categories = ["Northern Circuit", "Southern Circuit", "Beach Vacation"];
+  const groupedPackages = categories.map(category => ({
+    title: category,
+    data: packages.filter(pkg => pkg.category === category)
+  })).filter(section => section.data.length > 0);
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
-      {/* Hero Section - Refined */}
+      {/* Hero Section */}
       <section className="relative h-[70vh] flex items-center justify-center text-center text-white">
         <video
           autoPlay
@@ -102,9 +86,9 @@ const ToursAndSafaris = () => {
         </div>
       </section>
 
-      {/* Destination Sections - Elegant */}
+      {/* Destination Sections */}
       <div className="max-w-7xl mx-auto px-6 md:px-10 py-20 md:py-28">
-        {sections.map((section, index) => (
+        {groupedPackages.map((section, index) => (
           <motion.div 
             key={index} 
             className="mb-24 md:mb-32 last:mb-0"
@@ -113,7 +97,6 @@ const ToursAndSafaris = () => {
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Section Header */}
             <div className="text-center mb-12 md:mb-16">
               <h2 className="text-3xl md:text-4xl font-light tracking-wide text-gray-800">
                 {section.title}
@@ -124,43 +107,37 @@ const ToursAndSafaris = () => {
               </p>
             </div>
 
-            {/* Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
               {section.data.map((card, cardIndex) => (
                 <motion.div
-                  key={card.id}
+                  key={card._id}
                   className="group relative bg-white overflow-hidden"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: cardIndex * 0.1 }}
                 >
-                  {/* Image Container */}
                   <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
                     <Image
-                      src={card.image}
+                      src={card.cardImage}
                       alt={card.title}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      priority={card.id === 1}
                     />
-                    {/* Subtle overlay on hover */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
                   </div>
 
-                  {/* Content */}
                   <div className="pt-6 pb-0 px-0">
                     <h3 className="text-xl font-light tracking-wide text-gray-800 mb-2">
                       {card.title}
                     </h3>
                     <p className="text-sm font-light text-gray-500 leading-relaxed mb-5">
-                      {card.description}
+                      {card.shortDescription}
                     </p>
                     
-                    {/* Refined Link */}
                     <Link 
-                      href={card.path}
+                      href={`/safaris/${card.slug}`}
                       className="group/link inline-flex items-center gap-2 text-sm font-light tracking-wider text-gray-600 border-b border-gray-300 pb-0.5 hover:text-amber-700 hover:border-amber-700 transition-all duration-300"
                     >
                       <span>DISCOVER JOURNEY</span>
@@ -178,8 +155,7 @@ const ToursAndSafaris = () => {
               ))}
             </div>
 
-            {/* Elegant Separator */}
-            {index < sections.length - 1 && (
+            {index < groupedPackages.length - 1 && (
               <div className="mt-20 md:mt-28 flex justify-center">
                 <div className="w-16 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
               </div>
@@ -189,6 +165,4 @@ const ToursAndSafaris = () => {
       </div>
     </div>
   );
-};
-
-export default ToursAndSafaris;
+}

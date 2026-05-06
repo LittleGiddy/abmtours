@@ -1,11 +1,50 @@
+// app/BookNow/page.tsx
 "use client";
 import { useState, useEffect } from "react";
-import { Calendar, Users, Plane, Hotel, MapPin, Phone, Mail, User, CreditCard, Clock, ChevronRight, Sparkles, Shield, Award, Star } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import Image from "next/image";
+import {
+  Calendar, Users, Plane, Hotel, MapPin, Phone, Mail, User,
+  CreditCard, Clock, ChevronRight, Sparkles, Shield, Award, Star,
+  CheckCircle, Info, Globe, Compass, Sun, Coffee, Wifi, Camera,
+  Heart, Briefcase
+} from "lucide-react";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
 import AdsterraBanner from "../components/AdsterraBanner";
 
-// Define proper types
+// ---------- Types ----------
+interface PriceTier {
+  minPax: number;
+  maxPax: number;
+  pricePerPerson: number;
+}
+
+interface Option {
+  optionTitle: string;
+  description: string;
+  activities: string;
+  mainImage: string;
+  priceType: "fixed" | "tiered" | "contact";
+  priceAmount: number | null;
+  priceTiers?: PriceTier[];
+  accommodationImages?: string[];
+  showMoreContent?: string;
+}
+
+interface Package {
+  _id: string;
+  title: string;
+  slug: string;
+  category: string;
+  shortDescription: string;
+  cardImage: string;
+  heroImage: string;
+  overview: string;
+  highlights: string[];
+  options: Option[];
+}
+
 interface FormDataType {
   firstName: string;
   lastName: string;
@@ -26,107 +65,121 @@ interface FormDataType {
   agreeToInfo: boolean;
 }
 
-type FormValue = string | boolean | string[];
+const circuitInfo: Record<string, { description: string; icon: string }> = {
+  "Northern Circuit": {
+    description: "Serengeti, Ngorongoro Crater, Lake Manyara – the classic safari route, great for the Great Migration.",
+    icon: "🦁",
+  },
+  "Southern Circuit": {
+    description: "Ruaha, Nyerere (Selous) – vast, remote wilderness, ideal for off‑the‑beaten‑path adventures.",
+    icon: "🐘",
+  },
+  "Beach Vacation": {
+    description: "Zanzibar, Mafia, Pemba – white sands, turquoise water, and Swahili culture.",
+    icon: "🏖️",
+  },
+};
 
-interface FieldErrors {
-  [key: string]: string;
-}
+const getOptionPriceDisplay = (opt: Option): string => {
+  if (opt.priceType === "fixed" && opt.priceAmount) {
+    return `$${opt.priceAmount.toLocaleString()}`;
+  } else if (opt.priceType === "tiered" && opt.priceTiers && opt.priceTiers.length) {
+    const min = Math.min(...opt.priceTiers.map(t => t.pricePerPerson));
+    const max = Math.max(...opt.priceTiers.map(t => t.pricePerPerson));
+    return min === max ? `$${min.toLocaleString()}` : `$${min.toLocaleString()} - $${max.toLocaleString()}`;
+  }
+  return "Contact for price";
+};
 
-interface TouchedFields {
-  [key: string]: boolean;
-}
-
-// Validation helper functions – unchanged
-const validateField = (name: string, value: FormValue): string => {
+// ---------- Validation ----------
+const validateField = (name: keyof FormDataType, value: any): string => {
   if (Array.isArray(value)) return "";
   switch (name) {
-    case 'firstName':
-      if (!value || (typeof value === 'string' && !value.trim())) return "First name is required";
-      if (typeof value === 'string' && value.trim().length < 2) return "First name must be at least 2 characters";
+    case "firstName":
+      if (!value?.trim()) return "First name required";
+      if (value.trim().length < 2) return "At least 2 characters";
       return "";
-    case 'lastName':
-      if (!value || (typeof value === 'string' && !value.trim())) return "Last name is required";
-      if (typeof value === 'string' && value.trim().length < 2) return "Last name must be at least 2 characters";
+    case "lastName":
+      if (!value?.trim()) return "Last name required";
+      if (value.trim().length < 2) return "At least 2 characters";
       return "";
-    case 'email':
-      if (!value || (typeof value === 'string' && !value.trim())) return "Email is required";
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (typeof value === 'string' && !emailRegex.test(value)) return "Please enter a valid email address";
+    case "email":
+      if (!value?.trim()) return "Email required";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Invalid email";
       return "";
-    case 'phone':
-      if (!value || (typeof value === 'string' && !value.trim())) return "Phone number is required";
-      const phoneDigits = (typeof value === 'string' ? value : String(value)).replace(/[^0-9]/g, '');
-      if (phoneDigits.length < 8) return "Please enter a valid phone number";
+    case "phone":
+      if (!value?.trim()) return "Phone required";
+      if (value.replace(/[^0-9]/g, "").length < 8) return "Invalid phone number";
       return "";
-    case 'travelType':
-      if (!value) return "Please select a travel type";
+    case "travelType":
+      if (!value) return "Please select a package";
       return "";
-    case 'accommodation':
-      if (!value) return "Please select accommodation type";
+    case "accommodation":
+      if (!value) return "Select accommodation type";
       return "";
-    case 'airportPickup':
-      if (!value) return "Please select airport pickup";
+    case "airportPickup":
+      if (!value) return "Select airport pickup";
       return "";
-    case 'expectedDate':
-      if (!value) return "Please select expected date";
-      const selectedDate = new Date(value as string);
+    case "expectedDate":
+      if (!value) return "Select expected date";
+      const selectedDate = new Date(value);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      if (selectedDate < today) return "Expected date cannot be in the past";
+      if (selectedDate < today) return "Date cannot be in the past";
       return "";
-    case 'nights':
-      if (!value) return "Number of nights is required";
-      const nights = parseInt(value as string);
+    case "nights":
+      if (!value) return "Nights required";
+      const nights = parseInt(value);
       if (isNaN(nights) || nights < 1) return "Must be at least 1 night";
-      if (nights > 365) return "Must be less than 365 nights";
+      if (nights > 365) return "Max 365 nights";
       return "";
-    case 'adults':
-      if (!value) return "Number of adults is required";
-      const adults = parseInt(value as string);
-      if (isNaN(adults) || adults < 1) return "Must be at least 1 adult";
-      if (adults > 50) return "Must be less than 50 adults";
+    case "adults":
+      if (!value) return "Adults required";
+      const adults = parseInt(value);
+      if (isNaN(adults) || adults < 1) return "At least 1 adult";
+      if (adults > 50) return "Max 50 adults";
       return "";
-    case 'budget':
-      if (!value) return "Please select budget range";
+    case "budget":
+      if (!value) return "Budget required";
       return "";
-    case 'agreeToInfo':
+    case "agreeToInfo":
       if (!value) return "You must agree to be contacted";
       return "";
-    case 'agreeToTerms':
-      if (!value) return "You must agree to the terms and conditions";
+    case "agreeToTerms":
+      if (!value) return "You must agree to terms";
       return "";
     default:
       return "";
   }
 };
 
-const validateStep = (step: number, formData: FormDataType): { isValid: boolean; errors: FieldErrors } => {
-  const errors: FieldErrors = {};
+const validateStep = (step: number, formData: FormDataType) => {
+  const errors: Partial<Record<keyof FormDataType, string>> = {};
   let isValid = true;
   if (step === 1) {
-    const fields: (keyof FormDataType)[] = ['firstName', 'lastName', 'email', 'phone'];
-    for (const field of fields) {
-      const error = validateField(field, formData[field]);
-      if (error) {
-        errors[field] = error;
+    const fields: (keyof FormDataType)[] = ["firstName", "lastName", "email", "phone"];
+    for (const f of fields) {
+      const err = validateField(f, formData[f]);
+      if (err) {
+        errors[f] = err;
         isValid = false;
       }
     }
   } else if (step === 2) {
-    const fields: (keyof FormDataType)[] = ['travelType', 'accommodation', 'airportPickup', 'expectedDate', 'nights', 'adults', 'budget'];
-    for (const field of fields) {
-      const error = validateField(field, formData[field]);
-      if (error) {
-        errors[field] = error;
+    const fields: (keyof FormDataType)[] = ["travelType", "accommodation", "airportPickup", "expectedDate", "nights", "adults", "budget"];
+    for (const f of fields) {
+      const err = validateField(f, formData[f]);
+      if (err) {
+        errors[f] = err;
         isValid = false;
       }
     }
   } else if (step === 4) {
-    const fields: (keyof FormDataType)[] = ['agreeToInfo', 'agreeToTerms'];
-    for (const field of fields) {
-      const error = validateField(field, formData[field]);
-      if (error) {
-        errors[field] = error;
+    const fields: (keyof FormDataType)[] = ["agreeToInfo", "agreeToTerms"];
+    for (const f of fields) {
+      const err = validateField(f, formData[f]);
+      if (err) {
+        errors[f] = err;
         isValid = false;
       }
     }
@@ -134,77 +187,156 @@ const validateStep = (step: number, formData: FormDataType): { isValid: boolean;
   return { isValid, errors };
 };
 
-const BookNow = () => {
+export default function BookNow() {
+  const searchParams = useSearchParams();
+  const slugParam = searchParams.get("package");
+
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [selectedCircuit, setSelectedCircuit] = useState("");
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [selectedOption, setSelectedOption] = useState<Option | null>(null);
+  const [loadingPackages, setLoadingPackages] = useState(true);
+
   const [formData, setFormData] = useState<FormDataType>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    travelType: "",
-    tripEnhancements: [],
-    accommodation: "",
-    airportPickup: "",
-    expectedDate: "",
-    nights: "",
-    budget: "",
-    adults: "",
-    children: "",
-    destinations: [],
-    additionalInfo: "",
-    agreeToTerms: false,
-    agreeToInfo: false,
+    firstName: "", lastName: "", email: "", phone: "", travelType: "",
+    tripEnhancements: [], accommodation: "", airportPickup: "", expectedDate: "",
+    nights: "", budget: "", adults: "2", children: "0", destinations: [],
+    additionalInfo: "", agreeToTerms: false, agreeToInfo: false,
   });
 
   const [showFlash, setShowFlash] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [touchedFields, setTouchedFields] = useState<TouchedFields>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormDataType, string>>>({});
+  const [touchedFields, setTouchedFields] = useState<Partial<Record<keyof FormDataType, boolean>>>({});
 
-  useEffect(() => {
-    if (showFlash) {
-      const timer = setTimeout(() => setShowFlash(false), 5000);
-      return () => clearTimeout(timer);
+  // Play success tone using Web Audio API
+  const playSuccessTone = () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      const audioCtx = new AudioContext();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.frequency.value = 880; // A5 note
+      gainNode.gain.value = 0.3;
+      oscillator.type = "sine";
+      oscillator.start();
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+      oscillator.stop(audioCtx.currentTime + 0.5);
+    } catch (err) {
+      console.warn("Could not play success sound:", err);
     }
-  }, [showFlash]);
+  };
 
+  // Fetch packages
   useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
-      return () => clearTimeout(timer);
+    const fetchPackages = async () => {
+      try {
+        const res = await fetch("/api/packages");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        setPackages(data);
+      } catch (err) {
+        console.error(err);
+        setError("Could not load safari packages.");
+      } finally {
+        setLoadingPackages(false);
+      }
+    };
+    fetchPackages();
+  }, []);
+
+  // Auto-select from URL param
+  useEffect(() => {
+    if (slugParam && packages.length > 0 && !selectedPackage) {
+      const found = packages.find(p => p.slug === slugParam);
+      if (found) {
+        setSelectedCircuit(found.category);
+        setSelectedPackage(found);
+        if (found.options && found.options.length) {
+          setSelectedOption(found.options[0]);
+          autoFillFromPackage(found, found.options[0]);
+        }
+      }
     }
-  }, [error]);
+  }, [slugParam, packages]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const target = e.target as HTMLInputElement | HTMLSelectElement;
-    const { name, value, type } = target;
-    const checked = (target as HTMLInputElement).checked;
+  const autoFillFromPackage = (pkg: Package, opt: Option) => {
+    const nightsMatch = pkg.title.match(/(\d+)[-\s]*[Dd]ay/);
+    const nights = nightsMatch ? nightsMatch[1] : "";
+    let budgetDisplay = "";
+    if (opt.priceType === "fixed" && opt.priceAmount) budgetDisplay = `$${opt.priceAmount.toLocaleString()} per person (fixed)`;
+    else if (opt.priceType === "tiered" && opt.priceTiers?.length) {
+      const min = Math.min(...opt.priceTiers.map(t => t.pricePerPerson));
+      const max = Math.max(...opt.priceTiers.map(t => t.pricePerPerson));
+      budgetDisplay = min === max ? `$${min.toLocaleString()} per person` : `$${min.toLocaleString()} - $${max.toLocaleString()} per person`;
+    } else budgetDisplay = "Contact for price";
+    let destinations = [pkg.category];
+    const parkMatch = pkg.title.match(/(Serengeti|Ngorongoro|Tarangire|Manyara|Ruaha|Nyerere|Zanzibar|Mikumi)/i);
+    if (parkMatch) destinations.push(parkMatch[0]);
+    const additionalInfo = `Selected Package: ${pkg.title}\nOption: ${opt.optionTitle}\nPrice: ${budgetDisplay}\nActivities: ${opt.activities}\n\n`;
+    setFormData(prev => ({
+      ...prev,
+      travelType: pkg.title,
+      destinations: [...new Set([...prev.destinations, ...destinations])],
+      budget: budgetDisplay,
+      nights: nights || prev.nights,
+      additionalInfo: additionalInfo + prev.additionalInfo,
+    }));
+    setTouchedFields(prev => ({ ...prev, travelType: true, budget: true, nights: true }));
+  };
 
-    if (fieldErrors[name]) {
-      setFieldErrors(prev => ({ ...prev, [name]: "" }));
+  const handleCircuitSelect = (circuit: string) => {
+    setSelectedCircuit(circuit);
+    setSelectedPackage(null);
+    setSelectedOption(null);
+    if (!slugParam) {
+      setFormData(prev => ({ ...prev, travelType: "", budget: "", nights: "" }));
+    }
+  };
+
+  const handlePackageSelect = (pkg: Package) => {
+    setSelectedPackage(pkg);
+    const firstOpt = pkg.options?.[0] || null;
+    setSelectedOption(firstOpt);
+    if (firstOpt) autoFillFromPackage(pkg, firstOpt);
+  };
+
+  const handleOptionSelect = (opt: Option) => {
+    setSelectedOption(opt);
+    if (selectedPackage) autoFillFromPackage(selectedPackage, opt);
+  };
+
+  // Form handlers
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    const fieldName = name as keyof FormDataType;
+
+    if (fieldErrors[fieldName]) {
+      setFieldErrors(prev => ({ ...prev, [fieldName]: "" }));
     }
 
     if (type === "checkbox") {
-      if (Array.isArray(formData[name as keyof FormDataType]) && typeof value === "string") {
-        setFormData((prevState) => ({
-          ...prevState,
-          [name]: checked
-            ? [...(prevState[name as keyof FormDataType] as string[]), value]
-            : (prevState[name as keyof FormDataType] as string[]).filter((v) => v !== value),
+      if (Array.isArray(formData[fieldName])) {
+        setFormData(prev => ({
+          ...prev,
+          [fieldName]: checked
+            ? [...(prev[fieldName] as string[]), value]
+            : (prev[fieldName] as string[]).filter(v => v !== value),
         }));
       } else {
-        setFormData((prevState) => ({ ...prevState, [name]: checked }));
-        if (name === 'agreeToInfo' || name === 'agreeToTerms') {
-          const errorMsg = validateField(name, checked);
-          setFieldErrors(prev => ({ ...prev, [name]: errorMsg }));
+        setFormData(prev => ({ ...prev, [fieldName]: checked }));
+        if (fieldName === "agreeToInfo" || fieldName === "agreeToTerms") {
+          const err = validateField(fieldName, checked);
+          setFieldErrors(prev => ({ ...prev, [fieldName]: err }));
         }
       }
     } else {
-      setFormData((prevState) => ({ ...prevState, [name]: value }));
+      setFormData(prev => ({ ...prev, [fieldName]: value }));
     }
   };
 
@@ -215,74 +347,61 @@ const BookNow = () => {
 
   const handlePhoneBlur = () => {
     setTouchedFields(prev => ({ ...prev, phone: true }));
-    const errorMsg = validateField("phone", formData.phone);
-    setFieldErrors(prev => ({ ...prev, phone: errorMsg }));
+    const err = validateField("phone", formData.phone);
+    setFieldErrors(prev => ({ ...prev, phone: err }));
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setTouchedFields(prev => ({ ...prev, [name]: true }));
-    const errorMsg = validateField(name, value);
-    setFieldErrors(prev => ({ ...prev, [name]: errorMsg }));
+    const fieldName = name as keyof FormDataType;
+    setTouchedFields(prev => ({ ...prev, [fieldName]: true }));
+    const err = validateField(fieldName, value);
+    setFieldErrors(prev => ({ ...prev, [fieldName]: err }));
   };
 
   const resetForm = () => {
     setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      travelType: "",
-      tripEnhancements: [],
-      accommodation: "",
-      airportPickup: "",
-      expectedDate: "",
-      nights: "",
-      budget: "",
-      adults: "",
-      children: "",
-      destinations: [],
-      additionalInfo: "",
-      agreeToTerms: false,
-      agreeToInfo: false,
+      firstName: "", lastName: "", email: "", phone: "", travelType: "", tripEnhancements: [],
+      accommodation: "", airportPickup: "", expectedDate: "", nights: "", budget: "", adults: "2",
+      children: "0", destinations: [], additionalInfo: "", agreeToTerms: false, agreeToInfo: false,
     });
-    setFieldErrors({});
-    setTouchedFields({});
-    setCurrentStep(1);
+    setFieldErrors({}); setTouchedFields({}); setCurrentStep(1);
+    setSelectedCircuit(""); setSelectedPackage(null); setSelectedOption(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const step1Validation = validateStep(1, formData);
-    const step2Validation = validateStep(2, formData);
-    const step4Validation = validateStep(4, formData);
-    const allErrors = { ...step1Validation.errors, ...step2Validation.errors, ...step4Validation.errors };
-    if (Object.keys(allErrors).length > 0) {
+    const s1 = validateStep(1, formData), s2 = validateStep(2, formData), s4 = validateStep(4, formData);
+    const allErrors = { ...s1.errors, ...s2.errors, ...s4.errors };
+    if (Object.keys(allErrors).length) {
       setFieldErrors(allErrors);
-      const allTouched: TouchedFields = {};
-      Object.keys(formData).forEach(key => { allTouched[key] = true; });
+      const allTouched: Partial<Record<keyof FormDataType, boolean>> = {};
+      Object.keys(formData).forEach(k => allTouched[k as keyof FormDataType] = true);
       setTouchedFields(allTouched);
       setError("Please fix the errors before submitting");
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     setIsSubmitting(true);
     setError(null);
     try {
-      const response = await fetch('/api/create-booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/create-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to create booking');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to create booking");
+
+      // Play success tone
+      playSuccessTone();
+
       setShowFlash(true);
       resetForm();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      const submissionError = err as Error;
-      console.error('Submission error:', submissionError);
-      setError(submissionError.message || 'There was an error submitting your request');
+      console.error(err);
+      setError(err instanceof Error ? err.message : "Submission error");
     } finally {
       setIsSubmitting(false);
     }
@@ -292,32 +411,36 @@ const BookNow = () => {
     const { isValid, errors } = validateStep(currentStep, formData);
     if (!isValid) {
       setFieldErrors(errors);
-      const stepFields: (keyof FormDataType)[] = currentStep === 1 
-        ? ['firstName', 'lastName', 'email', 'phone']
-        : currentStep === 2 
-        ? ['travelType', 'accommodation', 'airportPickup', 'expectedDate', 'nights', 'adults', 'budget']
+      const stepFields: (keyof FormDataType)[] = currentStep === 1
+        ? ["firstName", "lastName", "email", "phone"]
+        : currentStep === 2
+        ? ["travelType", "accommodation", "airportPickup", "expectedDate", "nights", "adults", "budget"]
         : [];
-      const newTouched: TouchedFields = { ...touchedFields };
-      stepFields.forEach(field => { newTouched[field as string] = true; });
+      const newTouched = { ...touchedFields };
+      stepFields.forEach(f => newTouched[f] = true);
       setTouchedFields(newTouched);
       setError("Please fill in all required fields");
       return;
     }
     if (currentStep < 4) setCurrentStep(currentStep + 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const prevStep = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const hasError = (fieldName: string): boolean => !!fieldErrors[fieldName] && !!touchedFields[fieldName];
-  const getError = (fieldName: string): string => fieldErrors[fieldName] || "";
+  const hasError = (field: keyof FormDataType) => !!fieldErrors[field] && !!touchedFields[field];
+  const getError = (field: keyof FormDataType) => fieldErrors[field] || "";
+
+  if (loadingPackages) return <div className="min-h-screen flex items-center justify-center">Loading safari packages...</div>;
+
+  const circuits = [...new Set(packages.map(p => p.category))];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      {/* Hero Section – same as before */}
+      {/* Hero Section – refined luxury */}
       <section className="relative h-[70vh] flex items-center justify-center text-center text-white overflow-hidden">
         <div className="absolute inset-0">
           <video autoPlay loop muted playsInline className="w-full h-full object-cover transform scale-105">
@@ -325,12 +448,12 @@ const BookNow = () => {
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70"></div>
         </div>
-        <div className="relative z-10 px-6 max-w-5xl mx-auto animate-fade-in-up">
+        <div className="relative z-10 px-6 max-w-5xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 mb-6 border border-white/20">
             <Sparkles className="w-4 h-4 text-yellow-400" />
-            <span className="text-sm font-medium">Begin Your Journey</span>
+            <span className="text-sm font-medium tracking-wide">Begin Your Journey</span>
           </div>
-          <h1 className="text-5xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent">
             Book Your Safari Adventure
           </h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto font-light leading-relaxed">
@@ -340,131 +463,133 @@ const BookNow = () => {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-50 to-transparent"></div>
       </section>
 
-      {/* Booking Form Section */}
       <div className="py-16 px-4 sm:px-6 lg:px-8 -mt-20 relative z-20">
         <div className="max-w-6xl mx-auto">
-          {/* Progress Steps – unchanged */}
+          {/* Progressive Step Indicator */}
           <div className="mb-12">
-            <div className="flex justify-between items-center max-w-3xl mx-auto">
+            <div className="relative flex justify-between items-center max-w-3xl mx-auto">
               {[
                 { step: 1, title: "Personal Info", icon: User },
-                { step: 2, title: "Travel Details", icon: Plane },
-                { step: 3, title: "Preferences", icon: Hotel },
+                { step: 2, title: "Choose Safari", icon: Compass },
+                { step: 3, title: "Preferences", icon: Coffee },
                 { step: 4, title: "Review", icon: Shield },
-              ].map((item) => (
-                <div key={item.step} className="flex flex-col items-center flex-1">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    currentStep >= item.step ? "bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg scale-110" : "bg-gray-300 text-gray-500"
+              ].map((item, idx) => (
+                <div key={item.step} className="flex flex-col items-center flex-1 relative">
+                  {/* Connector line */}
+                  {idx < 3 && (
+                    <div className={`absolute top-5 left-[calc(50%+1rem)] w-[calc(100%-2rem)] h-0.5 transition-all duration-500 ${
+                      currentStep > item.step ? "bg-gradient-to-r from-orange-500 to-orange-400" : "bg-gray-300"
+                    }`} />
+                  )}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 z-10 ${
+                    currentStep >= item.step
+                      ? "bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg transform scale-110 ring-4 ring-blue-100"
+                      : "bg-gray-300 text-gray-500"
                   }`}>
                     <item.icon className="w-5 h-5" />
                   </div>
-                  <div className="text-xs mt-2 font-medium hidden sm:block">{item.title}</div>
-                  {item.step < 4 && (
-                    <div className="hidden sm:block absolute w-1/4 h-0.5 bg-gray-300 mt-6 transform -translate-y-1/2"
-                         style={{ left: `${(item.step - 0.5) * 25}%`, width: '25%' }}></div>
+                  <div className="text-xs font-medium mt-3 text-gray-600 hidden sm:block">{item.title}</div>
+                  {currentStep >= item.step && (
+                    <div className="absolute -bottom-6 text-xs text-orange-600 font-semibold whitespace-nowrap hidden md:block">
+                      {currentStep === item.step ? "Current" : "Completed"}
+                    </div>
                   )}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/50">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/50 transition-all duration-300">
+            {/* Flash & Error Messages */}
             {showFlash && (
-              <div className="m-6 p-5 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 text-green-700 rounded-xl animate-slide-down">
+              <div className="m-6 p-5 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 text-green-700 rounded-xl animate-slide-down shadow-md">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
-                  <div>
-                    <p className="font-semibold">Booking Request Submitted Successfully!</p>
-                    <p className="text-sm">We&apos;ll contact you within 24 hours to confirm your safari adventure.</p>
-                  </div>
+                  <div><p className="font-semibold text-lg">Booking Submitted!</p><p className="text-sm">We'll contact you within 24 hours.</p></div>
                 </div>
               </div>
             )}
             {error && (
-              <div className="m-6 p-5 bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 text-red-700 rounded-xl animate-slide-down">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Submission Error</p>
-                    <p className="text-sm">{error}</p>
-                  </div>
-                </div>
+              <div className="m-6 p-5 bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 text-red-700 rounded-xl shadow-md">
+                <p className="font-semibold">⚠️ {error}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="p-6 md:p-10">
-              {/* Step 1: Personal Information */}
+              {/* STEP 1 – Personal Information with upgraded luxury fields */}
               {currentStep === 1 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 bg-blue-50 rounded-full px-4 py-1.5 text-blue-800 text-sm mb-4">
+                      <User className="w-4 h-4" /> Step 1 of 4
+                    </div>
                     <h3 className="text-3xl font-bold text-gray-900">Personal Information</h3>
-                    <p className="text-gray-500 mt-2">Tell us who you are</p>
+                    <p className="text-gray-500 mt-2">Tell us who you are to begin your adventure</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* First Name */}
-                    <div className="relative">
+                    <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <User className="w-4 h-4 text-blue-900" /> First Name *
+                        <User className="w-4 h-4 text-blue-700" /> First Name *
                       </label>
                       <input
-                        type="text" name="firstName" value={formData.firstName}
-                        onChange={handleChange} onBlur={handleBlur} onFocus={() => setFocusedField('firstName')}
-                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          focusedField === 'firstName'
-                            ? 'border-blue-500 shadow-lg ring-2 ring-blue-200'
-                            : hasError('firstName') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:outline-none`}
+                        type="text"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400 focus:outline-none ${
+                          hasError("firstName") ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-blue-500"
+                        }`}
                         placeholder="John"
                       />
-                      {hasError('firstName') && <p className="mt-1 text-sm text-red-500">{getError('firstName')}</p>}
+                      {hasError("firstName") && <p className="text-red-500 text-sm mt-1">{getError("firstName")}</p>}
                     </div>
-                    {/* Last Name */}
-                    <div className="relative">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
-                      <input
-                        type="text" name="lastName" value={formData.lastName}
-                        onChange={handleChange} onBlur={handleBlur}
-                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          hasError('lastName') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:border-blue-500 focus:outline-none`}
-                        placeholder="Doe"
-                      />
-                      {hasError('lastName') && <p className="mt-1 text-sm text-red-500">{getError('lastName')}</p>}
-                    </div>
-                    {/* Email */}
-                    <div className="relative">
+                    <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-blue-900" /> Email *
+                        <User className="w-4 h-4 text-blue-700" /> Last Name *
                       </label>
                       <input
-                        type="email" name="email" value={formData.email}
-                        onChange={handleChange} onBlur={handleBlur}
-                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          hasError('email') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:border-blue-500 focus:outline-none`}
+                        type="text"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400 focus:outline-none ${
+                          hasError("lastName") ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-blue-500"
+                        }`}
+                        placeholder="Doe"
+                      />
+                      {hasError("lastName") && <p className="text-red-500 text-sm mt-1">{getError("lastName")}</p>}
+                    </div>
+                    <div className="group">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-blue-700" /> Email *
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400 focus:outline-none ${
+                          hasError("email") ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-blue-500"
+                        }`}
                         placeholder="john@example.com"
                       />
-                      {hasError('email') && <p className="mt-1 text-sm text-red-500">{getError('email')}</p>}
+                      {hasError("email") && <p className="text-red-500 text-sm mt-1">{getError("email")}</p>}
                     </div>
-                    {/* Phone – FIXED: same size as email input */}
-                    <div className="relative">
-  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-    <Phone className="w-4 h-4 text-blue-900" /> Phone Number *
+                    <div className="group">
+                      <div className="relative">
+  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+    <Phone className="w-4 h-4 text-blue-700 dark:text-blue-400" /> Phone Number *
   </label>
-
   <div
-    className={`w-full h-[56px] flex items-stretch border-2 rounded-xl transition-all duration-300 ${
-      hasError('phone')
-        ? 'border-red-500 bg-red-50'
-        : 'border-gray-300 hover:border-blue-300 focus-within:border-blue-500'
+    className={`w-full rounded-xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus-within:ring-2 focus-within:ring-blue-400 ${
+      hasError("phone")
+        ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+        : "border-gray-200 dark:border-gray-700 focus-within:border-blue-500"
     }`}
   >
     <PhoneInput
@@ -472,255 +597,403 @@ const BookNow = () => {
       value={formData.phone}
       onChange={handlePhoneChange}
       onBlur={handlePhoneBlur}
-      placeholder="+255 XXX XXX XXX"
-      className={`w-full
-
-        [&_.react-international-phone-input-container]:flex
-        [&_.react-international-phone-input-container]:items-stretch
-        [&_.react-international-phone-input-container]:h-full
-
-        [&_.react-international-phone-country-selector-button]:h-full
-        [&_.react-international-phone-country-selector-button]:px-3
-        [&_.react-international-phone-country-selector-button]:flex
-        [&_.react-international-phone-country-selector-button]:items-center
-        [&_.react-international-phone-country-selector-button]:border-none
-        [&_.react-international-phone-country-selector-button]:bg-transparent
-
-        [&_.react-international-phone-input]:h-full
-        [&_.react-international-phone-input]:w-full
-        [&_.react-international-phone-input]:px-4
-        [&_.react-international-phone-input]:border-none
-        [&_.react-international-phone-input]:outline-none
-        [&_.react-international-phone-input]:bg-transparent
-        [&_.react-international-phone-input]:text-base
-        [&_.react-international-phone-input]:leading-none
-      `}
+      className="w-full [&_.react-international-phone-input-container]:border-0 [&_.react-international-phone-country-selector-button]:border-0 [&_.react-international-phone-country-selector-button]:bg-transparent [&_.react-international-phone-country-selector-button]:px-3 [&_.react-international-phone-country-selector-button]:hover:bg-gray-100 [&_.react-international-phone-country-selector-button]:dark:hover:bg-gray-700 [&_.react-international-phone-input]:border-0 [&_.react-international-phone-input]:outline-none [&_.react-international-phone-input]:bg-transparent [&_.react-international-phone-input]:py-4 [&_.react-international-phone-input]:px-3 [&_.react-international-phone-input]:w-full"
     />
   </div>
-
-  {hasError('phone') && (
-    <p className="mt-1 text-sm text-red-500">{getError('phone')}</p>
-  )}
 </div>
+                      {hasError("phone") && <p className="text-red-500 text-sm mt-1">{getError("phone")}</p>}
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Steps 2, 3, 4 – unchanged (they don’t contain the phone input) */}
+              {/* STEP 2 – Choose Safari (Luxury Card Layout) – same as your current but enhanced */}
               {currentStep === 2 && (
                 <div className="space-y-8 animate-fade-in">
-                  <div className="text-center mb-8">
-                    <h3 className="text-3xl font-bold text-gray-900">Travel Details</h3>
-                    <p className="text-gray-500 mt-2">Plan your perfect safari</p>
+                  <div className="text-center mb-4">
+                    <div className="inline-flex items-center gap-2 bg-blue-50 rounded-full px-4 py-1.5 text-blue-800 text-sm mb-4">
+                      <Compass className="w-4 h-4" /> Step 2 of 4
+                    </div>
+                    <h3 className="text-3xl font-bold text-gray-900">Choose Your Safari</h3>
+                    <p className="text-gray-500 mt-2">Select a circuit, then pick your dream package</p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* All the travel detail fields – same as before */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Type of Travel *</label>
-                      <select name="travelType" value={formData.travelType} onChange={handleChange} onBlur={handleBlur}
-                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          hasError('travelType') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:border-blue-500 focus:outline-none`}>
-                        <option value="">Select travel type</option>
-                        {["Big Safaris","Safari & Beach","Honeymoon","The Migration","Vacation","Other"].map(type => (
-                          <option key={type} value={type}>{type}</option>
+
+                  {/* Circuit Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    {circuits.map(circuit => (
+                      <button
+                        key={circuit}
+                        type="button"
+                        onClick={() => handleCircuitSelect(circuit)}
+                        className={`text-left p-5 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 ${
+                          selectedCircuit === circuit
+                            ? "border-orange-500 bg-gradient-to-br from-orange-50 to-amber-50 shadow-md ring-2 ring-orange-200"
+                            : "border-gray-200 bg-white hover:border-orange-300"
+                        }`}
+                      >
+                        <div className="text-5xl mb-3">{circuitInfo[circuit]?.icon || "🌍"}</div>
+                        <h4 className="font-bold text-xl">{circuit}</h4>
+                        <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+                          {circuitInfo[circuit]?.description || "Explore Tanzania's finest"}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Package Grid */}
+                  {selectedCircuit && (
+                    <div className="mt-10">
+                      <h4 className="text-xl font-semibold mb-5 flex items-center gap-2">
+                        <Globe className="w-5 h-5 text-orange-600" />
+                        Available Packages in {selectedCircuit}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {packages.filter(p => p.category === selectedCircuit).map(pkg => (
+                          <div
+                            key={pkg._id}
+                            onClick={() => handlePackageSelect(pkg)}
+                            className={`cursor-pointer rounded-2xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-1 ${
+                              selectedPackage?._id === pkg._id
+                                ? "border-orange-500 bg-gradient-to-br from-orange-50 to-amber-50 ring-2 ring-orange-200"
+                                : "border-gray-200 bg-white hover:border-orange-300"
+                            }`}
+                          >
+                            <div className="relative h-52 w-full bg-gray-200">
+                              <Image src={pkg.cardImage} alt={pkg.title} fill className="object-cover" />
+                              {selectedPackage?._id === pkg._id && (
+                                <div className="absolute top-3 right-3 bg-orange-600 text-white rounded-full p-1.5 shadow-lg">
+                                  <CheckCircle className="w-5 h-5" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-5">
+                              <h5 className="font-bold text-xl">{pkg.title}</h5>
+                              <p className="text-sm text-gray-600 mt-2 line-clamp-2">{pkg.shortDescription}</p>
+                              <div className="mt-4 flex justify-between items-center">
+                                <span className="text-orange-600 font-bold text-lg">
+                                  {pkg.options.length ? getOptionPriceDisplay(pkg.options[0]) : "Contact for price"}
+                                </span>
+                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">
+                                  {pkg.options.length} option{pkg.options.length !== 1 ? "s" : ""}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         ))}
-                      </select>
-                      {hasError('travelType') && <p className="mt-1 text-sm text-red-500">{getError('travelType')}</p>}
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Accommodation Type *</label>
-                      <select name="accommodation" value={formData.accommodation} onChange={handleChange} onBlur={handleBlur}
-                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          hasError('accommodation') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:border-blue-500 focus:outline-none`}>
-                        <option value="">Select accommodation</option>
-                        {["Luxury","Mid Range","Budget","Don't know yet"].map(type => (
-                          <option key={type} value={type}>{type}</option>
+                  )}
+
+                  {/* Option Selector */}
+                  {selectedPackage && selectedPackage.options.length > 1 && (
+                    <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl shadow-inner">
+                      <h4 className="font-semibold mb-4 text-gray-800">Choose your preferred option:</h4>
+                      <div className="flex flex-wrap gap-3">
+                        {selectedPackage.options.map((opt, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleOptionSelect(opt)}
+                            className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                              selectedOption?.optionTitle === opt.optionTitle
+                                ? "bg-orange-600 text-white shadow-md transform scale-105"
+                                : "bg-white border border-gray-300 text-gray-700 hover:border-orange-400 hover:shadow"
+                            }`}
+                          >
+                            {opt.optionTitle} – {getOptionPriceDisplay(opt)}
+                          </button>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pre-filled Summary Card */}
+                  {selectedPackage && (
+                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-2xl mt-6 shadow-md">
+                      <div className="flex items-center gap-2 text-blue-800 mb-3">
+                        <Info className="w-5 h-5" /> Selected package details
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div><span className="font-semibold">Travel Type:</span> {formData.travelType}</div>
+                        <div><span className="font-semibold">Budget:</span> {formData.budget}</div>
+                        <div><span className="font-semibold">Nights:</span> {formData.nights || "To be confirmed"}</div>
+                        <div><span className="font-semibold">Destinations:</span> {formData.destinations.join(", ")}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Extra Travel Details – Luxury Inputs */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    <div className="group">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <Hotel className="w-4 h-4 text-blue-700" /> Accommodation Type *
+                      </label>
+                      <select
+                        name="accommodation"
+                        value={formData.accommodation}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400 ${
+                          hasError("accommodation") ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-blue-500"
+                        }`}
+                      >
+                        <option value="">Select preferred category</option>
+                        <option value="Luxury">⭐ Luxury (5-star lodges)</option>
+                        <option value="Mid Range">✨ Mid Range (comfortable)</option>
+                        <option value="Budget">🏕️ Budget (basic camping)</option>
                       </select>
-                      {hasError('accommodation') && <p className="mt-1 text-sm text-red-500">{getError('accommodation')}</p>}
+                      {hasError("accommodation") && <p className="text-red-500 text-sm mt-1">{getError("accommodation")}</p>}
                     </div>
-                    <div>
+                    <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-blue-900" /> Expected Start Date *
+                        <Plane className="w-4 h-4 text-blue-700" /> Airport Pickup *
                       </label>
-                      <input type="date" name="expectedDate" value={formData.expectedDate} onChange={handleChange} onBlur={handleBlur}
-                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          hasError('expectedDate') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:border-blue-500 focus:outline-none`} />
-                      {hasError('expectedDate') && <p className="mt-1 text-sm text-red-500">{getError('expectedDate')}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-blue-900" /> Number of Nights *
-                      </label>
-                      <input type="number" name="nights" value={formData.nights} onChange={handleChange} onBlur={handleBlur}
-                        placeholder="7" className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          hasError('nights') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:border-blue-500 focus:outline-none`} />
-                      {hasError('nights') && <p className="mt-1 text-sm text-red-500">{getError('nights')}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <Users className="w-4 h-4 text-blue-900" /> Number of Adults *
-                      </label>
-                      <select name="adults" value={formData.adults} onChange={handleChange} onBlur={handleBlur}
-                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          hasError('adults') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:border-blue-500 focus:outline-none`}>
-                        <option value="">Select adults</option>
-                        {[...Array(10)].map((_, n) => (<option key={n+1} value={String(n+1)}>{n+1}</option>))}
+                      <select
+                        name="airportPickup"
+                        value={formData.airportPickup}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400 ${
+                          hasError("airportPickup") ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-blue-500"
+                        }`}
+                      >
+                        <option value="">Select your arrival airport</option>
+                        <option value="Kilimanjaro (KIA)">🗻 Kilimanjaro (JRO)</option>
+                        <option value="Dar es salaam (JNIA)">🏙️ Dar es Salaam (DAR)</option>
+                        <option value="Zanzibar (ZNZ)">🏝️ Zanzibar (ZNZ)</option>
                       </select>
-                      {hasError('adults') && <p className="mt-1 text-sm text-red-500">{getError('adults')}</p>}
+                      {hasError("airportPickup") && <p className="text-red-500 text-sm mt-1">{getError("airportPickup")}</p>}
                     </div>
-                    <div>
+                    <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <Users className="w-4 h-4 text-blue-900" /> Number of Children
+                        <Calendar className="w-4 h-4 text-blue-700" /> Expected Start Date *
                       </label>
-                      <select name="children" value={formData.children} onChange={handleChange}
-                        className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300">
-                        <option value="0">None</option>
-                        {[...Array(8)].map((_, n) => (<option key={n+1} value={String(n+1)}>{n+1}</option>))}
-                      </select>
+                      <input
+                        type="date"
+                        name="expectedDate"
+                        value={formData.expectedDate}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400 ${
+                          hasError("expectedDate") ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-blue-500"
+                        }`}
+                      />
+                      {hasError("expectedDate") && <p className="text-red-500 text-sm mt-1">{getError("expectedDate")}</p>}
                     </div>
-                    <div>
+                    <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <CreditCard className="w-4 h-4 text-blue-900" /> Budget Level (Per person) *
+                        <Clock className="w-4 h-4 text-blue-700" /> Number of Nights *
                       </label>
-                      <select name="budget" value={formData.budget} onChange={handleChange} onBlur={handleBlur}
-                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          hasError('budget') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:border-blue-500 focus:outline-none`}>
-                        <option value="">Select budget</option>
-                        {["2000-4000","5000-7000","8000-10000","11000-13000","14000-16000","17000-20000","More than 20000"].map(b => (
-                          <option key={b} value={b}>${b}</option>
-                        ))}
-                      </select>
-                      {hasError('budget') && <p className="mt-1 text-sm text-red-500">{getError('budget')}</p>}
+                      <input
+                        type="number"
+                        name="nights"
+                        value={formData.nights}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        placeholder="e.g., 7"
+                        className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400 ${
+                          hasError("nights") ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-blue-500"
+                        }`}
+                      />
+                      {hasError("nights") && <p className="text-red-500 text-sm mt-1">{getError("nights")}</p>}
                     </div>
-                    <div>
+                    <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <Plane className="w-4 h-4 text-blue-900" /> Airport Pickup *
+                        <Users className="w-4 h-4 text-blue-700" /> Adults (18+) *
                       </label>
-                      <select name="airportPickup" value={formData.airportPickup} onChange={handleChange} onBlur={handleBlur}
-                        className={`w-full p-4 border-2 rounded-xl transition-all duration-300 ${
-                          hasError('airportPickup') ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-blue-300'
-                        } focus:border-blue-500 focus:outline-none`}>
-                        <option value="">Select airport</option>
-                        {["Kilimanjaro (KIA)","Dar es salaam (JNIA)","Zanzibar (ZNZ)"].map(airport => (
-                          <option key={airport} value={airport}>{airport}</option>
-                        ))}
+                      <select
+                        name="adults"
+                        value={formData.adults}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`w-full p-4 rounded-2xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400 ${
+                          hasError("adults") ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-blue-500"
+                        }`}
+                      >
+                        {[...Array(10)].map((_, i) => <option key={i+1} value={i+1}>{i+1} adult{i !== 0 ? "s" : ""}</option>)}
                       </select>
-                      {hasError('airportPickup') && <p className="mt-1 text-sm text-red-500">{getError('airportPickup')}</p>}
+                      {hasError("adults") && <p className="text-red-500 text-sm mt-1">{getError("adults")}</p>}
+                    </div>
+                    <div className="group">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <Heart className="w-4 h-4 text-blue-700" /> Children (under 12)
+                      </label>
+                      <select
+                        name="children"
+                        value={formData.children}
+                        onChange={handleChange}
+                        className="w-full p-4 rounded-2xl border-2 border-gray-200 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400"
+                      >
+                        {[...Array(8)].map((_, i) => <option key={i} value={i}>{i} child{i !== 1 ? "ren" : ""}</option>)}
+                      </select>
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* STEP 3 – Preferences (luxurified) */}
               {currentStep === 3 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 bg-blue-50 rounded-full px-4 py-1.5 text-blue-800 text-sm mb-4">
+                      <Coffee className="w-4 h-4" /> Step 3 of 4
+                    </div>
                     <h3 className="text-3xl font-bold text-gray-900">Your Preferences</h3>
-                    <p className="text-gray-500 mt-2">Customize your experience</p>
+                    <p className="text-gray-500 mt-2">Tell us how to make your safari extraordinary</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-4">Trip Enhancements</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                      <Heart className="w-4 h-4 text-orange-600" /> Trip Enhancements (select extra experiences)
+                    </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {["Beach","Boat Safari","Bush Drive","Chimps/Guerilla","Night Game Drive","Walking Safari","Other"].map(enh => (
-                        <label key={enh} className="flex items-center gap-3 p-3 border-2 border-gray-300 rounded-xl hover:border-blue-400 transition-all cursor-pointer">
-                          <input type="checkbox" name="tripEnhancements" value={enh} checked={formData.tripEnhancements.includes(enh)} onChange={handleChange} className="w-5 h-5 text-blue-600 rounded" />
-                          <span className="text-gray-700">{enh}</span>
+                      {["Beach", "Boat Safari", "Bush Drive", "Chimps/Guerilla", "Night Game Drive", "Walking Safari", "Other"].map(enh => (
+                        <label key={enh} className="flex items-center gap-3 p-4 bg-white border-2 border-gray-100 rounded-xl hover:border-orange-300 hover:shadow-md transition-all cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            name="tripEnhancements"
+                            value={enh}
+                            checked={formData.tripEnhancements.includes(enh)}
+                            onChange={handleChange}
+                            className="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
+                          />
+                          <span className="text-gray-700 group-hover:text-orange-700 transition-colors">{enh}</span>
                         </label>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2"><MapPin className="w-4 h-4 text-blue-900" /> Destinations</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-orange-600" /> Additional Destinations (you can select more)
+                    </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-96 overflow-y-auto p-2">
-                      {["Arusha","Katavi National Park","Lake Manyara","Mafia Island","Mahale National Park","Mikumi National Park","Nyerere National Park","Ngorongoro Crater","Pemba Island","Ruaha National Park","Serengeti National Park","Tarangire National Park","Zanzibar Beach","Other"].map(place => (
-                        <label key={place} className="flex items-center gap-3 p-3 border-2 border-gray-300 rounded-xl hover:border-blue-400 transition-all cursor-pointer">
-                          <input type="checkbox" name="destinations" value={place} checked={formData.destinations.includes(place)} onChange={handleChange} className="w-5 h-5 text-blue-600 rounded" />
-                          <span className="text-gray-700 text-sm">{place}</span>
+                      {["Arusha","Katavi","Lake Manyara","Mafia Island","Mahale","Mikumi","Nyerere","Ngorongoro Crater","Pemba","Ruaha","Serengeti","Tarangire","Zanzibar Beach","Other"].map(place => (
+                        <label key={place} className="flex items-center gap-3 p-3 bg-white border-2 border-gray-100 rounded-xl hover:border-orange-300 hover:shadow-sm transition-all cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="destinations"
+                            value={place}
+                            checked={formData.destinations.includes(place)}
+                            onChange={handleChange}
+                            className="w-5 h-5 text-orange-600 rounded"
+                          />
+                          <span className="text-sm text-gray-700">{place}</span>
                         </label>
                       ))}
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Additional Information</label>
-                    <textarea name="additionalInfo" value={formData.additionalInfo} onChange={handleChange} rows={5}
+                  <div className="group">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-blue-700" /> Additional Information
+                    </label>
+                    <textarea
+                      name="additionalInfo"
+                      value={formData.additionalInfo}
+                      onChange={handleChange}
+                      rows={5}
+                      className="w-full p-5 rounded-2xl border-2 border-gray-200 transition-all duration-200 shadow-sm group-hover:shadow-md focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none"
                       placeholder="Any special requests, dietary restrictions, or additional information?"
-                      className="w-full p-4 border-2 border-gray-300 rounded-xl hover:border-blue-300 focus:border-blue-500 focus:outline-none transition-all duration-300" />
+                    />
                   </div>
                 </div>
               )}
 
+              {/* STEP 4 – Review (luxury summary) */}
               {currentStep === 4 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 bg-blue-50 rounded-full px-4 py-1.5 text-blue-800 text-sm mb-4">
+                      <Shield className="w-4 h-4" /> Step 4 of 4
+                    </div>
                     <h3 className="text-3xl font-bold text-gray-900">Review Your Booking</h3>
-                    <p className="text-gray-500 mt-2">Please confirm your details</p>
+                    <p className="text-gray-500 mt-2">Please double-check your details before submitting</p>
                   </div>
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div><strong className="text-blue-900">Name:</strong> {formData.firstName} {formData.lastName}</div>
-                      <div><strong className="text-blue-900">Email:</strong> {formData.email}</div>
-                      <div><strong className="text-blue-900">Phone:</strong> {formData.phone}</div>
-                      <div><strong className="text-blue-900">Travel Type:</strong> {formData.travelType}</div>
-                      <div><strong className="text-blue-900">Accommodation:</strong> {formData.accommodation}</div>
-                      <div><strong className="text-blue-900">Start Date:</strong> {formData.expectedDate}</div>
-                      <div><strong className="text-blue-900">Nights:</strong> {formData.nights}</div>
-                      <div><strong className="text-blue-900">Adults:</strong> {formData.adults}</div>
-                      <div><strong className="text-blue-900">Children:</strong> {formData.children || '0'}</div>
-                      <div><strong className="text-blue-900">Budget:</strong> ${formData.budget}</div>
-                      <div><strong className="text-blue-900">Airport Pickup:</strong> {formData.airportPickup}</div>
-                      <div><strong className="text-blue-900">Enhancements:</strong> {formData.tripEnhancements.join(', ') || 'None'}</div>
-                      <div className="md:col-span-2"><strong className="text-blue-900">Destinations:</strong> {formData.destinations.join(', ') || 'Not specified'}</div>
-                      {formData.additionalInfo && <div className="md:col-span-2"><strong className="text-blue-900">Additional Info:</strong> {formData.additionalInfo}</div>}
+                  <div className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 rounded-2xl p-8 shadow-md border border-white">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2"><strong className="text-blue-800">📛 Name:</strong> {formData.firstName} {formData.lastName}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">📧 Email:</strong> {formData.email}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">📞 Phone:</strong> {formData.phone}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">🦁 Travel Type:</strong> {formData.travelType}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">🏨 Accommodation:</strong> {formData.accommodation}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">📅 Start Date:</strong> {formData.expectedDate}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">🌙 Nights:</strong> {formData.nights}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">👥 Adults:</strong> {formData.adults}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">🧸 Children:</strong> {formData.children}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">💰 Budget:</strong> {formData.budget}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">✈️ Airport:</strong> {formData.airportPickup}</div>
+                      <div className="space-y-2"><strong className="text-blue-800">✨ Enhancements:</strong> {formData.tripEnhancements.join(", ") || "None"}</div>
+                      <div className="md:col-span-2 space-y-2"><strong className="text-blue-800">📍 Destinations:</strong> {formData.destinations.join(", ")}</div>
+                      {formData.additionalInfo && <div className="md:col-span-2 space-y-2"><strong className="text-blue-800">📝 Additional Info:</strong> {formData.additionalInfo}</div>}
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer">
-                      <input type="checkbox" name="agreeToInfo" checked={formData.agreeToInfo} onChange={handleChange} onBlur={handleBlur} className={`mt-1 w-5 h-5 rounded ${hasError('agreeToInfo') ? 'border-red-500' : 'text-blue-600'}`} />
-                      <span className="text-gray-700">I agree to be contacted for follow-up and additional information. *</span>
+                  <div className="space-y-5">
+                    <label className="flex items-start gap-3 p-5 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-100 transition">
+                      <input
+                        type="checkbox"
+                        name="agreeToInfo"
+                        checked={formData.agreeToInfo}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className="mt-1 w-5 h-5 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                      />
+                      <span>I agree to be contacted for follow-up and additional information. *</span>
                     </label>
-                    {hasError('agreeToInfo') && <p className="text-sm text-red-500 ml-8">{getError('agreeToInfo')}</p>}
-                    <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer">
-                      <input type="checkbox" name="agreeToTerms" checked={formData.agreeToTerms} onChange={handleChange} onBlur={handleBlur} className={`mt-1 w-5 h-5 rounded ${hasError('agreeToTerms') ? 'border-red-500' : 'text-blue-600'}`} />
-                      <span className="text-gray-700">I agree to the terms and conditions. *</span>
+                    {hasError("agreeToInfo") && <p className="text-red-500 text-sm">{getError("agreeToInfo")}</p>}
+                    <label className="flex items-start gap-3 p-5 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-100 transition">
+                      <input
+                        type="checkbox"
+                        name="agreeToTerms"
+                        checked={formData.agreeToTerms}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className="mt-1 w-5 h-5 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                      />
+                      <span>I agree to the terms and conditions. *</span>
                     </label>
-                    {hasError('agreeToTerms') && <p className="text-sm text-red-500 ml-8">{getError('agreeToTerms')}</p>}
+                    {hasError("agreeToTerms") && <p className="text-red-500 text-sm">{getError("agreeToTerms")}</p>}
                   </div>
                 </div>
               )}
 
-              {/* Navigation Buttons */}
-              <div className="flex justify-between mt-10 pt-6 border-t-2 border-gray-200">
+              {/* Navigation Buttons – luxury gradients */}
+              <div className="flex justify-between mt-12 pt-8 border-t-2 border-gray-200">
                 {currentStep > 1 && (
-                  <button type="button" onClick={prevStep}
-                    className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-300 font-semibold cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="px-8 py-3 bg-white text-gray-700 rounded-xl border-2 border-gray-300 hover:bg-gray-50 hover:shadow-md transition-all duration-200 font-semibold flex items-center gap-2"
+                  >
                     ← Previous
                   </button>
                 )}
                 {currentStep < 4 && (
-                  <button type="button" onClick={nextStep}
-                    className="px-8 py-3 bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold ml-auto cursor-pointer">
-                    Next →
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-900 to-blue-800 text-white rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-semibold ml-auto flex items-center gap-2"
+                  >
+                    Next Step →
                   </button>
                 )}
                 {currentStep === 4 && (
-                  <button type="submit" disabled={isSubmitting}
-                    className={`px-8 py-3 bg-gradient-to-r from-orange-800 to-orange-500 text-white rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-semibold ml-auto flex items-center gap-2 cursor-pointer ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`px-10 py-3.5 bg-gradient-to-r from-orange-700 to-orange-600 text-white rounded-xl shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold ml-auto flex items-center gap-3 ${
+                      isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
+                  >
                     {isSubmitting ? (
                       <>
                         <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Processing...
+                        Submitting...
                       </>
                     ) : (
-                      <>Submit Booking <ChevronRight className="w-5 h-5" /></>
+                      <>
+                        Submit Booking <ChevronRight className="w-5 h-5" />
+                      </>
                     )}
                   </button>
                 )}
@@ -728,19 +1001,19 @@ const BookNow = () => {
             </form>
           </div>
 
-          {/* Trust Badges */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-md">
-              <Shield className="w-10 h-10 text-blue-900" />
-              <div><p className="font-semibold">Secure Booking</p><p className="text-sm text-gray-500">Your data is protected</p></div>
+          {/* Trust Badges – refined */}
+          <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center gap-5 p-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition">
+              <Shield className="w-12 h-12 text-blue-900" />
+              <div><p className="font-bold text-gray-800">Secure Booking</p><p className="text-sm text-gray-500">Your data is encrypted and safe</p></div>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-md">
-              <Award className="w-10 h-10 text-blue-900" />
-              <div><p className="font-semibold">Best Price Guarantee</p><p className="text-sm text-gray-500">No hidden fees</p></div>
+            <div className="flex items-center gap-5 p-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition">
+              <Award className="w-12 h-12 text-blue-900" />
+              <div><p className="font-bold text-gray-800">Best Price Guarantee</p><p className="text-sm text-gray-500">No hidden fees, price match</p></div>
             </div>
-            <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-md">
-              <Star className="w-10 h-10 text-blue-900" />
-              <div><p className="font-semibold">5-Star Service</p><p className="text-sm text-gray-500">Expert travel planners</p></div>
+            <div className="flex items-center gap-5 p-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition">
+              <Star className="w-12 h-12 text-blue-900" />
+              <div><p className="font-bold text-gray-800">5-Star Service</p><p className="text-sm text-gray-500">Expert travel planners ready for you</p></div>
             </div>
           </div>
         </div>
@@ -748,6 +1021,4 @@ const BookNow = () => {
       <AdsterraBanner />
     </div>
   );
-};
-
-export default BookNow;
+}

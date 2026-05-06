@@ -31,6 +31,7 @@
     "file-saver": "^2.0.5",
     "formidable": "^3.5.2",
     "framer-motion": "^12.6.3",
+    "groq-sdk": "^1.1.2",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.482.0",
     "mongodb": "^6.15.0",
@@ -38,8 +39,10 @@
     "next": "^15.4.0",
     "next-auth": "^4.24.11",
     "nodemailer": "^6.10.1",
+    "openai": "^6.36.0",
     "papa": "^0.0.0",
     "papaparse": "^5.5.2",
+    "pdf-parse": "^2.4.5",
     "react": "^19.0.0",
     "react-cropper": "^2.3.3",
     "react-dom": "^19.0.0",
@@ -53,6 +56,7 @@
     "swiper": "^11.2.6",
     "tailwind-merge": "^3.0.2",
     "tw-animate-css": "^1.2.4",
+    "unpdf": "^1.6.2",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

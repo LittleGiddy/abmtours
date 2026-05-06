@@ -1,3 +1,4 @@
+// app/admin/SIdeNavbar/SIdeNavbar.jsx
 'use client';
 
 import React from "react";
@@ -14,10 +15,13 @@ import {
   MdOutlineBookmarkBorder,
   MdSpaceDashboard,
   MdOutlinePhotoLibrary,
-  MdOutlineAdminPanelSettings, // Add this icon
+  MdOutlineAdminPanelSettings,
 } from "react-icons/md";
 import { BiMessageSquareDots } from "react-icons/bi";
 import { IoMdStarOutline } from "react-icons/io";
+import { MdOutlineFileUpload } from "react-icons/md";
+
+
 
 function SIdeNavbar() {
   return (
@@ -63,10 +67,10 @@ function SIdeNavbar() {
                 <MenuItem icon={<MdOutlinePhotoLibrary />} label="Gallery" path="/admin/gallery" />
                 <MenuItem icon={<BiMessageSquareDots />} label="Messages" path="/admin/Messages" />
                 <MenuItem icon={<MdOutlineMapsHomeWork />} label="Desired Place" path="/admin/desired-place" />
-                <MenuItem icon={<MdOutlineTravelExplore />} label="Tours and Safaris" path="/admin/tours" />
+                {/* Tours and Safaris now points to the package management page */}
+                <MenuItem icon={<MdOutlineTravelExplore />} label="Tours and Safaris" path="/admin/packages" />
+                <MenuItem icon={<MdOutlineFileUpload />} label="Import PDF" path="/admin/import-pdf" />
                 <MenuItem icon={<MdOutlineLocationOn />} label="Destinations" path="/admin/destinations" />
-                
-                {/* Setup Link - Just add this one line */}
                 <MenuItem icon={<MdOutlineAdminPanelSettings />} label="Setup" path="/admin/setup" />
               </div>
 
@@ -87,7 +91,7 @@ function SIdeNavbar() {
   );
 }
 
-// Reusable menu item component
+// Reusable menu item component (no TypeScript annotation)
 const MenuItem = ({ icon, label, path, extraClasses = "" }) => {
   const router = useRouter();
 

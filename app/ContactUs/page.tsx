@@ -121,10 +121,10 @@ const ContactUs = () => {
               <div className="flex items-center space-x-3">
                 <Mail className="text-blue-950" />
                 <a
-                  href="mailto:info@example.com"
+                  href="info@abmtours.co.tz"
                   className="text-blue-950 hover:underline"
                 >
-                  info@abmtours.or.tz
+                  info@abmtours.co.tz
                 </a>
               </div>
               <iframe

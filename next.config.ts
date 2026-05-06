@@ -1,11 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+
+serverExternalPackages: ["pdf-parse"],
+
   images: {
     domains: [
       "images.unsplash.com",
       "upload.wikimedia.org",
     ],
+
     remotePatterns: [
       {
         protocol: "https",
