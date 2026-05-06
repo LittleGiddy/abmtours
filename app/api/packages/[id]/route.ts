@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params; // ✅ await the params
+    const { id } = await params;
     const client = await clientPromise();
     const db = client.db('abmtours');
     const pkg = await db.collection('packages').findOne({ _id: new ObjectId(id) });
@@ -24,16 +24,20 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const client = await clientPromise();
     const db = client.db('abmtours');
     const body = await request.json();
-    const { _id, ...updateData } = body; // remove _id if present
+    
+    // Remove _id if present (it shouldn't be sent, but just in case)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _id: _ignored, ...updateData } = body;
 
     const result = await db.collection('packages').updateOne(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       { $set: { ...updateData, updatedAt: new Date() } }
     );
 
@@ -41,7 +45,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Package not found' }, { status: 404 });
     }
 
-    const updated = await db.collection('packages').findOne({ _id: new ObjectId(params.id) });
+    const updated = await db.collection('packages').findOne({ _id: new ObjectId(id) });
     return NextResponse.json(updated);
   } catch (error) {
     console.error('PUT /api/packages/[id] error:', error);
@@ -51,12 +55,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const client = await clientPromise();
     const db = client.db('abmtours');
-    const result = await db.collection('packages').deleteOne({ _id: new ObjectId(params.id) });
+    const result = await db.collection('packages').deleteOne({ _id: new ObjectId(id) });
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: 'Package not found' }, { status: 404 });
     }

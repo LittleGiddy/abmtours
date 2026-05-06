@@ -4,9 +4,9 @@ import { useEffect, useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { FiMapPin, FiChevronDown, FiChevronUp, FiUsers, FiPhone, FiMail, FiCalendar, FiClock, FiCompass } from "react-icons/fi";
+import { FiMapPin, FiChevronDown, FiChevronUp, FiUsers, FiClock, FiCompass } from "react-icons/fi";
 
-// ---------- Types (unchanged) ----------
+// ---------- Types ----------
 interface PriceTier {
   minPax: number;
   maxPax: number;
@@ -61,6 +61,30 @@ interface PackageData {
   excludedList?: string[];
 }
 
+// Raw API response types (to avoid 'any')
+interface RawItineraryDay {
+  day: number;
+  title: string;
+  description?: string;
+  activities?: string[];
+  meals?: string | string[];
+  overnight?: string;
+  blocks?: ItineraryBlock[];
+}
+
+interface RawOption {
+  optionTitle: string;
+  description: string;
+  activities: string;
+  itineraryDays: RawItineraryDay[];
+  mainImage: string;
+  accommodation: Accommodation;
+  priceType: "fixed" | "tiered" | "contact";
+  priceAmount: number | null;
+  priceTiers?: PriceTier[];
+  showMoreContent?: string;
+}
+
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -85,10 +109,6 @@ const staggerContainer = {
   },
 };
 
-const cardHover = {
-  whileHover: { y: -4, transition: { duration: 0.2 } },
-};
-
 export default function SafariDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [packageData, setPackageData] = useState<PackageData | null>(null);
@@ -97,9 +117,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
   const [activeOption, setActiveOption] = useState(0);
   const [openDayIndex, setOpenDayIndex] = useState<number | null>(0);
   const [selectedTier, setSelectedTier] = useState<PriceTier | null>(null);
-  const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
 
-  // Parallax effect for hero image (optional)
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 500], [0, 150]);
 
@@ -116,15 +134,15 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
           return;
         }
 
-        const normalizedOptions = (data.options || []).map((opt: any) => {
-          let itineraryDays = opt.itineraryDays || [];
-          if (itineraryDays.length > 0 && itineraryDays[0].blocks === undefined) {
-            itineraryDays = itineraryDays.map((day: any) => ({
+        const normalizedOptions = (data.options as RawOption[]).map((opt) => {
+          let itineraryDays: ItineraryDay[] = opt.itineraryDays || [];
+          if (itineraryDays.length > 0 && !itineraryDays[0].blocks) {
+            itineraryDays = itineraryDays.map((day: RawItineraryDay) => ({
               day: day.day,
-              title: day.title,
-              blocks: [{ time: "Full day", description: day.description, activities: day.activities || [] }],
-              meals: day.meals ? [day.meals] : undefined,
-              overnight: day.overnight,
+              title: day.title || "",
+              blocks: [{ time: "Full day", description: day.description || "", activities: day.activities || [] }],
+              meals: day.meals ? (Array.isArray(day.meals) ? day.meals : [day.meals]) : undefined,
+              overnight: day.overnight || "",
             }));
           }
           return {
@@ -145,9 +163,6 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
         const firstOpt = normalizedOptions[0];
         if (firstOpt.priceType === "tiered" && firstOpt.priceTiers?.length) {
           setSelectedTier(firstOpt.priceTiers[0]);
-          setSelectedPrice(firstOpt.priceTiers[0].pricePerPerson);
-        } else if (firstOpt.priceType === "fixed" && firstOpt.priceAmount) {
-          setSelectedPrice(firstOpt.priceAmount);
         }
       } catch (err) {
         console.error(err);
@@ -164,7 +179,11 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-        <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1.5 }} className="text-gray-600 dark:text-gray-300">
+        <motion.div
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="text-gray-600 dark:text-gray-300"
+        >
           Loading safari details...
         </motion.div>
       </div>
@@ -200,7 +219,6 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
 
   const handleTierSelect = (tier: PriceTier) => {
     setSelectedTier(tier);
-    setSelectedPrice(tier.pricePerPerson);
   };
 
   const formatPriceRange = (tiers: PriceTier[]) => {
@@ -216,10 +234,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
     <main className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 overflow-x-hidden">
       {/* Hero Section with Parallax */}
       <section className="relative h-[70vh] md:h-[75vh] flex items-center justify-center text-center text-white overflow-hidden">
-        <motion.div
-          className="absolute inset-0"
-          style={{ y: heroY }}
-        >
+        <motion.div className="absolute inset-0" style={{ y: heroY }}>
           <Image
             src={packageData.heroImage}
             alt={packageData.title}
@@ -267,7 +282,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
 
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        {/* Breadcrumb (fade in) */}
+        {/* Breadcrumb */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -281,7 +296,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
           <span className="text-gray-700 dark:text-gray-300">{packageData.title}</span>
         </motion.div>
 
-        {/* Overview & Highlights - staggered entrance */}
+        {/* Overview & Highlights */}
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -354,11 +369,6 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
                   const newOpt = packageData.options[idx];
                   if (newOpt.priceType === "tiered" && newOpt.priceTiers?.length) {
                     setSelectedTier(newOpt.priceTiers[0]);
-                    setSelectedPrice(newOpt.priceTiers[0].pricePerPerson);
-                  } else if (newOpt.priceType === "fixed" && newOpt.priceAmount) {
-                    setSelectedPrice(newOpt.priceAmount);
-                  } else {
-                    setSelectedPrice(null);
                   }
                 }}
                 className={`px-6 py-3 text-sm font-medium transition-all duration-200 border-b-2 -mb-px ${
@@ -373,7 +383,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
           </div>
         </motion.div>
 
-        {/* Main Grid - animated while in view */}
+        {/* Main Grid */}
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -589,10 +599,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
                   </div>
                 )}
 
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Link
                     href={`/BookNow?package=${packageData.slug}`}
                     className="block w-full text-center bg-gradient-to-r from-blue-900 to-blue-800 hover:from-blue-800 hover:to-blue-700 text-white py-3.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg"
@@ -613,7 +620,6 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
               </div>
             </motion.div>
 
-            {/* Quick contact help */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -629,7 +635,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
           </div>
         </motion.div>
 
-        {/* Bottom CTA with floating animation */}
+        {/* Bottom CTA */}
         <motion.section
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}

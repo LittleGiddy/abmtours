@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { 
   ChevronDown, ChevronUp, Plus, Trash2, Upload, Image as ImageIcon, 
-  Eye, CheckCircle, Info, Clock, MapPin, 
-  Home, Briefcase, Settings, ArrowLeft,
+  Eye, CheckCircle, Info, Briefcase, Settings, ArrowLeft,
 } from "lucide-react";
 
 // ----------------------------- Types -----------------------------
@@ -134,7 +133,7 @@ export default function CreatePackage() {
       } else if (field === "mapImage") {
         setFormData((prev) => ({ ...prev, mapImage: url }));
       }
-    } catch (err) {
+    } catch {
       alert("Failed to upload image");
     }
   };
@@ -226,7 +225,7 @@ export default function CreatePackage() {
           images: [...currentAccommodation.images, url],
         });
       }
-    } catch (err) {
+    } catch {
       alert("Failed to upload image");
     }
   };
@@ -265,7 +264,8 @@ export default function CreatePackage() {
     } else if (field === "title" && typeof value === "string") {
       updatedDays[dayIndex].title = value;
     } else {
-      (updatedDays[dayIndex] as any)[field] = value;
+      // Safe assignment for other string fields (overnight, etc.)
+      (updatedDays[dayIndex] as Record<string, unknown>)[field as string] = value;
     }
     updateOption(optionIndex, "itineraryDays", updatedDays);
   };
@@ -368,8 +368,7 @@ export default function CreatePackage() {
         const error = (await res.json()) as { error: string };
         alert(error.error || "Failed to create package");
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("An error occurred");
     } finally {
       setLoading(false);
@@ -647,7 +646,7 @@ export default function CreatePackage() {
           <Section title="Inclusions & Exclusions" icon={<CheckCircle className="w-5 h-5 text-blue-600" />} defaultOpen>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">✓ What's Included</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">✓ What&apos;s Included</label>
                 <div className="flex gap-2 mb-2">
                   <input type="text" className="flex-1 p-2 border rounded-lg" value={includedInput} onChange={(e) => setIncludedInput(e.target.value)} placeholder="e.g., Park fees" />
                   <button type="button" onClick={addIncluded} className="bg-green-600 text-white px-4 rounded-lg hover:bg-green-700">Add</button>
@@ -662,7 +661,7 @@ export default function CreatePackage() {
                 </ul>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">✗ What's Excluded</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">✗ What&apos;s Excluded</label>
                 <div className="flex gap-2 mb-2">
                   <input type="text" className="flex-1 p-2 border rounded-lg" value={excludedInput} onChange={(e) => setExcludedInput(e.target.value)} placeholder="e.g., International flights" />
                   <button type="button" onClick={addExcluded} className="bg-red-600 text-white px-4 rounded-lg hover:bg-red-700">Add</button>
@@ -691,7 +690,7 @@ export default function CreatePackage() {
             </div>
             <div className="p-5 space-y-6">
               {formData.options.length === 0 && (
-                <div className="text-center text-gray-500 py-8">No options added yet. Click "Add Option" to start.</div>
+                <div className="text-center text-gray-500 py-8">No options added yet. Click &quot;Add Option&quot; to start.</div>
               )}
               {formData.options.map((opt, idx) => (
                 <div key={idx} className="bg-white rounded-xl border shadow-sm overflow-hidden">
@@ -828,7 +827,10 @@ export default function CreatePackage() {
                             ))}
                           </div>
                         )}
-                        <div className="mt-3"><label className="text-sm">Show More Content (optional)</label><textarea rows={3} className="w-full p-2 border rounded-lg mt-1" value={opt.showMoreContent} onChange={(e) => updateOption(idx, "showMoreContent", e.target.value)} placeholder="Additional details shown after 'Read more'..." /></div>
+                        <div className="mt-3">
+                          <label className="text-sm">Show More Content (optional)</label>
+                          <textarea rows={3} className="w-full p-2 border rounded-lg mt-1" value={opt.showMoreContent} onChange={(e) => updateOption(idx, "showMoreContent", e.target.value)} placeholder={'Additional details shown after "Read more"...'} />
+                        </div>
                       </div>
                     </div>
                   )}
