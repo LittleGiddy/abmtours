@@ -207,7 +207,6 @@ export default function CreatePackage() {
     }
   };
 
-  // Generic option updater – typesafe
   const updateOption = <K extends keyof Option>(index: number, field: K, value: Option[K]) => {
     const updatedOptions = [...formData.options];
     updatedOptions[index] = { ...updatedOptions[index], [field]: value };
@@ -277,27 +276,8 @@ export default function CreatePackage() {
     updateOption(optionIndex, "itineraryDays", updatedDays);
   };
 
-  // Blocks within a day
+  // Blocks within a day – typed version (no as any)
   const addBlock = (optionIndex: number, dayIndex: number) => {
-    const opt = formData.options[optionIndex];
-    const day = opt.itineraryDays[dayIndex];
-    const newBlock: ItineraryBlock = {
-      time: "",
-      description: "",
-      activities: [],
-    };
-    const updatedBlocks = [...day.blocks, newBlock];
-    updateOption(optionIndex, "itineraryDays", {
-      ...opt.itineraryDays,
-      [dayIndex]: { ...day, blocks: updatedBlocks },
-    } as any);
-    // Using updateItineraryDay for blocks is simpler:
-    // updateItineraryDay(optionIndex, dayIndex, "blocks", updatedBlocks);
-  };
-  // The above function is correct; we'll use the typed helper.
-
-  // Let's redefine addBlock using updateItineraryDay:
-  const addBlockTyped = (optionIndex: number, dayIndex: number) => {
     const opt = formData.options[optionIndex];
     const day = opt.itineraryDays[dayIndex];
     const newBlock: ItineraryBlock = { time: "", description: "", activities: [] };
@@ -500,9 +480,6 @@ export default function CreatePackage() {
       </div>
     );
   };
-
-  // Use addBlockTyped in the render
-  const addBlock = addBlockTyped; // alias
 
   return (
     <div className="min-h-screen bg-gray-100">
