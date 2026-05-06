@@ -50,8 +50,6 @@ interface PackageData {
   updatedAt?: Date | string;
 }
 
-type Category = "Northern Circuit" | "Southern Circuit" | "Beach Vacation";
-
 export default function EditPackage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -128,7 +126,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     }
   };
 
-  // Generic update for any field of an option
+  // Type-safe update option
   const updateOption = <K extends keyof Option>(index: number, field: K, value: Option[K]) => {
     if (formData) {
       const updatedOptions = [...formData.options];
@@ -176,6 +174,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     }
   };
 
+  // Type-safe updateItineraryDay (no 'any')
   const updateItineraryDay = (
     optionIndex: number,
     dayIndex: number,
@@ -187,10 +186,14 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
       const updatedDays = [...(opt.itineraryDays || [])];
       if (field === "activities" && typeof value === "string") {
         updatedDays[dayIndex].activities = value.split(",").map((s) => s.trim());
-      } else if ((field === "title" || field === "description" || field === "meals" || field === "overnight") && typeof value === "string") {
-        (updatedDays[dayIndex] as any)[field] = value;
-      } else if (field === "day" && typeof value === "number") {
-        updatedDays[dayIndex].day = value;
+      } else if (field === "title" && typeof value === "string") {
+        updatedDays[dayIndex].title = value;
+      } else if (field === "description" && typeof value === "string") {
+        updatedDays[dayIndex].description = value;
+      } else if (field === "meals" && typeof value === "string") {
+        updatedDays[dayIndex].meals = value;
+      } else if (field === "overnight" && typeof value === "string") {
+        updatedDays[dayIndex].overnight = value;
       }
       updateOption(optionIndex, "itineraryDays", updatedDays);
     }
@@ -200,9 +203,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     if (formData) {
       const opt = formData.options[optionIndex];
       const updatedDays = (opt.itineraryDays || []).filter((_, i) => i !== dayIndex);
-      updatedDays.forEach((day, idx) => {
-        day.day = idx + 1;
-      });
+      updatedDays.forEach((day, idx) => (day.day = idx + 1));
       updateOption(optionIndex, "itineraryDays", updatedDays);
     }
   };
@@ -212,45 +213,24 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     const tiers = opt.priceTiers || [];
     updateOption(optionIndex, "priceTiers", [...tiers, { minPax: 1, maxPax: 1, pricePerPerson: 0 }]);
   };
-
-  const updatePriceTier = (optionIndex: number, tierIndex: number, field: keyof PriceTier, value: number) => {
+  const updatePriceTier = (
+    optionIndex: number,
+    tierIndex: number,
+    field: keyof { minPax: number; maxPax: number; pricePerPerson: number },
+    value: number
+  ) => {
     const opt = formData!.options[optionIndex];
     const tiers = opt.priceTiers ? [...opt.priceTiers] : [];
     if (tiers[tierIndex]) {
-      const updatedTier = { ...tiers[tierIndex], [field]: value };
-      tiers[tierIndex] = updatedTier;
+      tiers[tierIndex] = { ...tiers[tierIndex], [field]: value };
       updateOption(optionIndex, "priceTiers", tiers);
     }
   };
-
   const removePriceTier = (optionIndex: number, tierIndex: number) => {
     const opt = formData!.options[optionIndex];
     const tiers = (opt.priceTiers || []).filter((_, i) => i !== tierIndex);
     updateOption(optionIndex, "priceTiers", tiers);
   };
-
-  // Define a type for the raw option from API
-  interface RawOption {
-    optionTitle: string;
-    description: string;
-    activities: string;
-    itineraryDays: RawItineraryDay[];
-    mainImage: string;
-    accommodation: Accommodation;
-    priceType: "fixed" | "contact" | "tiered";
-    priceAmount: number | null;
-    priceTiers?: { minPax: number; maxPax: number; pricePerPerson: number }[];
-    showMoreContent: string;
-  }
-
-  interface RawItineraryDay {
-    day: number;
-    title: string;
-    description: string;
-    activities?: string[];
-    meals?: string;
-    overnight?: string;
-  }
 
   useEffect(() => {
     const fetchPackage = async () => {
@@ -258,9 +238,9 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
         const res = await fetch(`/api/packages/${id}`);
         if (!res.ok) throw new Error("Failed to fetch");
         const data = (await res.json()) as PackageData;
-        const normalizedOptions = (data.options || []).map((opt: RawOption) => ({
+        const normalizedOptions = (data.options || []).map((opt) => ({
           ...opt,
-          itineraryDays: (opt.itineraryDays || []).map((day: RawItineraryDay) => ({
+          itineraryDays: (opt.itineraryDays || []).map((day) => ({
             ...day,
             activities: day.activities || [],
             meals: day.meals || "",
@@ -287,7 +267,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     if (!formData) return;
     setLoading(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _id, createdAt: _createdAt, updatedAt: _updatedAt, ...updateData } = formData;
+    const { _id, createdAt, updatedAt, ...updateData } = formData;
     if (!updateData.slug) {
       updateData.slug = updateData.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     }
@@ -318,8 +298,6 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     return <div className="min-h-screen flex items-center justify-center text-red-500">Package not found</div>;
   }
 
-  type Category = "Northern Circuit" | "Southern Circuit" | "Beach Vacation";
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-6">
@@ -344,7 +322,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
                 <select
                   className="w-full p-2 border rounded"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as Category })}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value as PackageData["category"] })}
                 >
                   <option value="Northern Circuit">Northern Circuit</option>
                   <option value="Southern Circuit">Southern Circuit</option>
@@ -651,9 +629,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
                     <select
                       className="w-full p-2 border rounded"
                       value={opt.priceType}
-                      onChange={(e) =>
-                        updateOption(idx, "priceType", e.target.value as "fixed" | "tiered" | "contact")
-                      }
+                      onChange={(e) => updateOption(idx, "priceType", e.target.value as Option["priceType"])}
                     >
                       <option value="fixed">Fixed Price</option>
                       <option value="tiered">Tiered by Group Size</option>
