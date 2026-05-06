@@ -512,7 +512,7 @@ export default function BookNow() {
                   <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
-                  <div><p className="font-semibold text-lg">Booking Submitted!</p><p className="text-sm">We'll contact you within 24 hours.</p></div>
+                  <div><p className="font-semibold text-lg">Booking Submitted!</p><p className="text-sm">We&apos;ll contact you within 24 hours.</p></div>
                 </div>
               </div>
             )}
@@ -905,20 +905,20 @@ export default function BookNow() {
                   </div>
                   <div className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 rounded-2xl p-8 shadow-md border border-white">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div><strong className="text-blue-800">📛 Name:</strong> {formData.firstName} {formData.lastName}</div>
-                      <div><strong className="text-blue-800">📧 Email:</strong> {formData.email}</div>
-                      <div><strong className="text-blue-800">📞 Phone:</strong> {formData.phone}</div>
-                      <div><strong className="text-blue-800">🦁 Travel Type:</strong> {formData.travelType}</div>
-                      <div><strong className="text-blue-800">🏨 Accommodation:</strong> {formData.accommodation}</div>
-                      <div><strong className="text-blue-800">📅 Start Date:</strong> {formData.expectedDate}</div>
-                      <div><strong className="text-blue-800">🌙 Nights:</strong> {formData.nights}</div>
-                      <div><strong className="text-blue-800">👥 Adults:</strong> {formData.adults}</div>
-                      <div><strong className="text-blue-800">🧸 Children:</strong> {formData.children}</div>
-                      <div><strong className="text-blue-800">💰 Budget:</strong> {formData.budget}</div>
-                      <div><strong className="text-blue-800">✈️ Airport:</strong> {formData.airportPickup}</div>
-                      <div><strong className="text-blue-800">✨ Enhancements:</strong> {formData.tripEnhancements.join(", ") || "None"}</div>
-                      <div className="md:col-span-2"><strong className="text-blue-800">📍 Destinations:</strong> {formData.destinations.join(", ")}</div>
-                      {formData.additionalInfo && <div className="md:col-span-2"><strong className="text-blue-800">📝 Additional Info:</strong> {formData.additionalInfo}</div>}
+                      <div><strong className="text-blue-800">Name:</strong> {formData.firstName} {formData.lastName}</div>
+                      <div><strong className="text-blue-800">Email:</strong> {formData.email}</div>
+                      <div><strong className="text-blue-800">Phone:</strong> {formData.phone}</div>
+                      <div><strong className="text-blue-800">Travel Type:</strong> {formData.travelType}</div>
+                      <div><strong className="text-blue-800">Accommodation:</strong> {formData.accommodation}</div>
+                      <div><strong className="text-blue-800">Start Date:</strong> {formData.expectedDate}</div>
+                      <div><strong className="text-blue-800">Nights:</strong> {formData.nights}</div>
+                      <div><strong className="text-blue-800">Adults:</strong> {formData.adults}</div>
+                      <div><strong className="text-blue-800">Children:</strong> {formData.children}</div>
+                      <div><strong className="text-blue-800">Budget:</strong> {formData.budget}</div>
+                      <div><strong className="text-blue-800">Airport:</strong> {formData.airportPickup}</div>
+                      <div><strong className="text-blue-800">Enhancements:</strong> {formData.tripEnhancements.join(", ") || "None"}</div>
+                      <div className="md:col-span-2"><strong className="text-blue-800">Destinations:</strong> {formData.destinations.join(", ")}</div>
+                      {formData.additionalInfo && <div className="md:col-span-2"><strong className="text-blue-800">Additional Info:</strong> {formData.additionalInfo}</div>}
                     </div>
                   </div>
                   <div className="space-y-5">
