@@ -5,8 +5,8 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
   Calendar, Users, Plane, Hotel, MapPin, Phone, Mail, User,
-  CreditCard, Clock, ChevronRight, Sparkles, Shield, Award, Star,
-  CheckCircle, Info, Globe, Compass, Sun, Coffee, Wifi, Camera,
+  Clock, ChevronRight, Sparkles, Shield, Award, Star,
+  CheckCircle, Info, Globe, Compass, Coffee,
   Heart, Briefcase
 } from "lucide-react";
 import { PhoneInput } from "react-international-phone";
@@ -92,61 +92,65 @@ const getOptionPriceDisplay = (opt: Option): string => {
 };
 
 // ---------- Validation ----------
-const validateField = (name: keyof FormDataType, value: any): string => {
+// ✅ Replaced `any` with a proper union of possible value types
+type FieldValue = string | boolean | string[];
+
+const validateField = (name: keyof FormDataType, value: FieldValue): string => {
   if (Array.isArray(value)) return "";
+  const stringVal = value?.toString() || "";
   switch (name) {
     case "firstName":
-      if (!value?.trim()) return "First name required";
-      if (value.trim().length < 2) return "At least 2 characters";
+      if (!stringVal.trim()) return "First name required";
+      if (stringVal.trim().length < 2) return "At least 2 characters";
       return "";
     case "lastName":
-      if (!value?.trim()) return "Last name required";
-      if (value.trim().length < 2) return "At least 2 characters";
+      if (!stringVal.trim()) return "Last name required";
+      if (stringVal.trim().length < 2) return "At least 2 characters";
       return "";
     case "email":
-      if (!value?.trim()) return "Email required";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Invalid email";
+      if (!stringVal.trim()) return "Email required";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringVal)) return "Invalid email";
       return "";
     case "phone":
-      if (!value?.trim()) return "Phone required";
-      if (value.replace(/[^0-9]/g, "").length < 8) return "Invalid phone number";
+      if (!stringVal.trim()) return "Phone required";
+      if (stringVal.replace(/[^0-9]/g, "").length < 8) return "Invalid phone number";
       return "";
     case "travelType":
-      if (!value) return "Please select a package";
+      if (!stringVal) return "Please select a package";
       return "";
     case "accommodation":
-      if (!value) return "Select accommodation type";
+      if (!stringVal) return "Select accommodation type";
       return "";
     case "airportPickup":
-      if (!value) return "Select airport pickup";
+      if (!stringVal) return "Select airport pickup";
       return "";
     case "expectedDate":
-      if (!value) return "Select expected date";
-      const selectedDate = new Date(value);
+      if (!stringVal) return "Select expected date";
+      const selectedDate = new Date(stringVal);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (selectedDate < today) return "Date cannot be in the past";
       return "";
     case "nights":
-      if (!value) return "Nights required";
-      const nights = parseInt(value);
+      if (!stringVal) return "Nights required";
+      const nights = parseInt(stringVal);
       if (isNaN(nights) || nights < 1) return "Must be at least 1 night";
       if (nights > 365) return "Max 365 nights";
       return "";
     case "adults":
-      if (!value) return "Adults required";
-      const adults = parseInt(value);
+      if (!stringVal) return "Adults required";
+      const adults = parseInt(stringVal);
       if (isNaN(adults) || adults < 1) return "At least 1 adult";
       if (adults > 50) return "Max 50 adults";
       return "";
     case "budget":
-      if (!value) return "Budget required";
+      if (!stringVal) return "Budget required";
       return "";
     case "agreeToInfo":
-      if (!value) return "You must agree to be contacted";
+      if (value !== true) return "You must agree to be contacted";
       return "";
     case "agreeToTerms":
-      if (!value) return "You must agree to terms";
+      if (value !== true) return "You must agree to terms";
       return "";
     default:
       return "";
@@ -262,7 +266,7 @@ export default function BookNow() {
         }
       }
     }
-  }, [slugParam, packages]);
+  }, [slugParam, packages, selectedPackage]); // ✅ added missing dependency
 
   const autoFillFromPackage = (pkg: Package, opt: Option) => {
     const nightsMatch = pkg.title.match(/(\d+)[-\s]*[Dd]ay/);
@@ -274,14 +278,16 @@ export default function BookNow() {
       const max = Math.max(...opt.priceTiers.map(t => t.pricePerPerson));
       budgetDisplay = min === max ? `$${min.toLocaleString()} per person` : `$${min.toLocaleString()} - $${max.toLocaleString()} per person`;
     } else budgetDisplay = "Contact for price";
-    let destinations = [pkg.category];
+
+    // ✅ Changed 'let' to 'const' because the variable is never reassigned (only mutated via .push)
+    const destinationsArray = [pkg.category];
     const parkMatch = pkg.title.match(/(Serengeti|Ngorongoro|Tarangire|Manyara|Ruaha|Nyerere|Zanzibar|Mikumi)/i);
-    if (parkMatch) destinations.push(parkMatch[0]);
+    if (parkMatch) destinationsArray.push(parkMatch[0]);
     const additionalInfo = `Selected Package: ${pkg.title}\nOption: ${opt.optionTitle}\nPrice: ${budgetDisplay}\nActivities: ${opt.activities}\n\n`;
     setFormData(prev => ({
       ...prev,
       travelType: pkg.title,
-      destinations: [...new Set([...prev.destinations, ...destinations])],
+      destinations: [...new Set([...prev.destinations, ...destinationsArray])],
       budget: budgetDisplay,
       nights: nights || prev.nights,
       additionalInfo: additionalInfo + prev.additionalInfo,
@@ -507,7 +513,7 @@ export default function BookNow() {
                   <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
-                  <div><p className="font-semibold text-lg">Booking Submitted!</p><p className="text-sm">We'll contact you within 24 hours.</p></div>
+                  <div><p className="font-semibold text-lg">Booking Submitted!</p><p className="text-sm">We&apos;ll contact you within 24 hours.</p></div>
                 </div>
               </div>
             )}
@@ -518,7 +524,7 @@ export default function BookNow() {
             )}
 
             <form onSubmit={handleSubmit} className="p-6 md:p-10">
-              {/* STEP 1 – Personal Information with upgraded luxury fields */}
+              {/* STEP 1 – Personal Information */}
               {currentStep === 1 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-8">
@@ -582,32 +588,32 @@ export default function BookNow() {
                     </div>
                     <div className="group">
                       <div className="relative">
-  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-    <Phone className="w-4 h-4 text-blue-700 dark:text-blue-400" /> Phone Number *
-  </label>
-  <div
-    className={`w-full rounded-xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus-within:ring-2 focus-within:ring-blue-400 ${
-      hasError("phone")
-        ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-        : "border-gray-200 dark:border-gray-700 focus-within:border-blue-500"
-    }`}
-  >
-    <PhoneInput
-      defaultCountry="tz"
-      value={formData.phone}
-      onChange={handlePhoneChange}
-      onBlur={handlePhoneBlur}
-      className="w-full [&_.react-international-phone-input-container]:border-0 [&_.react-international-phone-country-selector-button]:border-0 [&_.react-international-phone-country-selector-button]:bg-transparent [&_.react-international-phone-country-selector-button]:px-3 [&_.react-international-phone-country-selector-button]:hover:bg-gray-100 [&_.react-international-phone-country-selector-button]:dark:hover:bg-gray-700 [&_.react-international-phone-input]:border-0 [&_.react-international-phone-input]:outline-none [&_.react-international-phone-input]:bg-transparent [&_.react-international-phone-input]:py-4 [&_.react-international-phone-input]:px-3 [&_.react-international-phone-input]:w-full"
-    />
-  </div>
-</div>
-                      {hasError("phone") && <p className="text-red-500 text-sm mt-1">{getError("phone")}</p>}
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-blue-700 dark:text-blue-400" /> Phone Number *
+                        </label>
+                        <div
+                          className={`w-full rounded-xl border-2 transition-all duration-200 shadow-sm group-hover:shadow-md focus-within:ring-2 focus-within:ring-blue-400 ${
+                            hasError("phone")
+                              ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+                              : "border-gray-200 dark:border-gray-700 focus-within:border-blue-500"
+                          }`}
+                        >
+                          <PhoneInput
+                            defaultCountry="tz"
+                            value={formData.phone}
+                            onChange={handlePhoneChange}
+                            onBlur={handlePhoneBlur}
+                            className="w-full [&_.react-international-phone-input-container]:border-0 [&_.react-international-phone-country-selector-button]:border-0 [&_.react-international-phone-country-selector-button]:bg-transparent [&_.react-international-phone-country-selector-button]:px-3 [&_.react-international-phone-country-selector-button]:hover:bg-gray-100 [&_.react-international-phone-country-selector-button]:dark:hover:bg-gray-700 [&_.react-international-phone-input]:border-0 [&_.react-international-phone-input]:outline-none [&_.react-international-phone-input]:bg-transparent [&_.react-international-phone-input]:py-4 [&_.react-international-phone-input]:px-3 [&_.react-international-phone-input]:w-full"
+                          />
+                        </div>
+                        {hasError("phone") && <p className="text-red-500 text-sm mt-1">{getError("phone")}</p>}
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* STEP 2 – Choose Safari (Luxury Card Layout) – same as your current but enhanced */}
+              {/* STEP 2 – Choose Safari (same as your current enhanced version) */}
               {currentStep === 2 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-4">
@@ -633,9 +639,7 @@ export default function BookNow() {
                       >
                         <div className="text-5xl mb-3">{circuitInfo[circuit]?.icon || "🌍"}</div>
                         <h4 className="font-bold text-xl">{circuit}</h4>
-                        <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                          {circuitInfo[circuit]?.description || "Explore Tanzania's finest"}
-                        </p>
+                        <p className="text-sm text-gray-600 mt-2 leading-relaxed">{circuitInfo[circuit]?.description || "Explore Tanzania's finest"}</p>
                       </button>
                     ))}
                   </div>
@@ -710,9 +714,7 @@ export default function BookNow() {
                   {/* Pre-filled Summary Card */}
                   {selectedPackage && (
                     <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-2xl mt-6 shadow-md">
-                      <div className="flex items-center gap-2 text-blue-800 mb-3">
-                        <Info className="w-5 h-5" /> Selected package details
-                      </div>
+                      <div className="flex items-center gap-2 text-blue-800 mb-3"><Info className="w-5 h-5" /> Selected package details</div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div><span className="font-semibold">Travel Type:</span> {formData.travelType}</div>
                         <div><span className="font-semibold">Budget:</span> {formData.budget}</div>
@@ -722,7 +724,7 @@ export default function BookNow() {
                     </div>
                   )}
 
-                  {/* Extra Travel Details – Luxury Inputs */}
+                  {/* Extra Travel Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -831,7 +833,7 @@ export default function BookNow() {
                 </div>
               )}
 
-              {/* STEP 3 – Preferences (luxurified) */}
+              {/* STEP 3 – Preferences */}
               {currentStep === 3 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-8">
@@ -897,7 +899,7 @@ export default function BookNow() {
                 </div>
               )}
 
-              {/* STEP 4 – Review (luxury summary) */}
+              {/* STEP 4 – Review */}
               {currentStep === 4 && (
                 <div className="space-y-8 animate-fade-in">
                   <div className="text-center mb-8">
@@ -909,20 +911,20 @@ export default function BookNow() {
                   </div>
                   <div className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 rounded-2xl p-8 shadow-md border border-white">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="space-y-2"><strong className="text-blue-800">📛 Name:</strong> {formData.firstName} {formData.lastName}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">📧 Email:</strong> {formData.email}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">📞 Phone:</strong> {formData.phone}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">🦁 Travel Type:</strong> {formData.travelType}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">🏨 Accommodation:</strong> {formData.accommodation}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">📅 Start Date:</strong> {formData.expectedDate}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">🌙 Nights:</strong> {formData.nights}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">👥 Adults:</strong> {formData.adults}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">🧸 Children:</strong> {formData.children}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">💰 Budget:</strong> {formData.budget}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">✈️ Airport:</strong> {formData.airportPickup}</div>
-                      <div className="space-y-2"><strong className="text-blue-800">✨ Enhancements:</strong> {formData.tripEnhancements.join(", ") || "None"}</div>
-                      <div className="md:col-span-2 space-y-2"><strong className="text-blue-800">📍 Destinations:</strong> {formData.destinations.join(", ")}</div>
-                      {formData.additionalInfo && <div className="md:col-span-2 space-y-2"><strong className="text-blue-800">📝 Additional Info:</strong> {formData.additionalInfo}</div>}
+                      <div><strong className="text-blue-800">📛 Name:</strong> {formData.firstName} {formData.lastName}</div>
+                      <div><strong className="text-blue-800">📧 Email:</strong> {formData.email}</div>
+                      <div><strong className="text-blue-800">📞 Phone:</strong> {formData.phone}</div>
+                      <div><strong className="text-blue-800">🦁 Travel Type:</strong> {formData.travelType}</div>
+                      <div><strong className="text-blue-800">🏨 Accommodation:</strong> {formData.accommodation}</div>
+                      <div><strong className="text-blue-800">📅 Start Date:</strong> {formData.expectedDate}</div>
+                      <div><strong className="text-blue-800">🌙 Nights:</strong> {formData.nights}</div>
+                      <div><strong className="text-blue-800">👥 Adults:</strong> {formData.adults}</div>
+                      <div><strong className="text-blue-800">🧸 Children:</strong> {formData.children}</div>
+                      <div><strong className="text-blue-800">💰 Budget:</strong> {formData.budget}</div>
+                      <div><strong className="text-blue-800">✈️ Airport:</strong> {formData.airportPickup}</div>
+                      <div><strong className="text-blue-800">✨ Enhancements:</strong> {formData.tripEnhancements.join(", ") || "None"}</div>
+                      <div className="md:col-span-2"><strong className="text-blue-800">📍 Destinations:</strong> {formData.destinations.join(", ")}</div>
+                      {formData.additionalInfo && <div className="md:col-span-2"><strong className="text-blue-800">📝 Additional Info:</strong> {formData.additionalInfo}</div>}
                     </div>
                   </div>
                   <div className="space-y-5">
@@ -954,7 +956,7 @@ export default function BookNow() {
                 </div>
               )}
 
-              {/* Navigation Buttons – luxury gradients */}
+              {/* Navigation Buttons */}
               <div className="flex justify-between mt-12 pt-8 border-t-2 border-gray-200">
                 {currentStep > 1 && (
                   <button
@@ -1001,7 +1003,7 @@ export default function BookNow() {
             </form>
           </div>
 
-          {/* Trust Badges – refined */}
+          {/* Trust Badges */}
           <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-center gap-5 p-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition">
               <Shield className="w-12 h-12 text-blue-900" />

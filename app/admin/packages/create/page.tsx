@@ -1,12 +1,12 @@
 // app/admin/packages/create/page.tsx
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { 
   ChevronDown, ChevronUp, Plus, Trash2, Upload, Image as ImageIcon, 
-  Eye, Save, X, AlertCircle, CheckCircle, Info, Clock, MapPin, 
-  Home, Briefcase, Settings, EyeOff, ArrowLeft, Copy, MoveUp, MoveDown
+  Eye, CheckCircle, Info, Clock, MapPin, 
+  Home, Briefcase, Settings, ArrowLeft,
 } from "lucide-react";
 
 // ----------------------------- Types -----------------------------
@@ -49,26 +49,49 @@ interface Option {
   showMoreContent: string;
 }
 
+type Category = "Northern Circuit" | "Southern Circuit" | "Beach Vacation";
+
+// ----------------------------- Section Component Props -----------------------------
+interface SectionProps {
+  title: string;
+  icon: ReactNode;
+  children: ReactNode;
+  defaultOpen?: boolean;
+}
+
 // ----------------------------- Main Component -----------------------------
 export default function CreatePackage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [activeSection, setActiveSection] = useState<string | null>(null); // for mobile nav
-  const [expandedOptions, setExpandedOptions] = useState<number[]>([0]); // which options are expanded
+  const [expandedOptions, setExpandedOptions] = useState<number[]>([0]);
 
-  const [formData, setFormData] = useState({
+  type FormDataType = {
+    title: string;
+    category: Category;
+    shortDescription: string;
+    overview: string;
+    highlights: string[];
+    arrivalText: string;
+    quickInfo: string[];
+    mapImage: string;
+    includedList: string[];
+    excludedList: string[];
+    options: Option[];
+  };
+
+  const [formData, setFormData] = useState<FormDataType>({
     title: "",
-    category: "Northern Circuit" as const,
+    category: "Northern Circuit",
     shortDescription: "",
     overview: "",
-    highlights: [] as string[],
+    highlights: [],
     arrivalText: "",
-    quickInfo: [] as string[],
+    quickInfo: [],
     mapImage: "",
-    includedList: [] as string[],
-    excludedList: [] as string[],
-    options: [] as Option[],
+    includedList: [],
+    excludedList: [],
+    options: [],
   });
 
   const [images, setImages] = useState({
@@ -93,7 +116,7 @@ export default function CreatePackage() {
     uploadFormData.append("file", file);
     const res = await fetch("/api/upload", { method: "POST", body: uploadFormData });
     if (!res.ok) throw new Error("Upload failed");
-    const data = await res.json();
+    const data = (await res.json()) as { url: string };
     return data.url;
   };
 
@@ -111,7 +134,7 @@ export default function CreatePackage() {
       } else if (field === "mapImage") {
         setFormData((prev) => ({ ...prev, mapImage: url }));
       }
-    } catch (error) {
+    } catch (err) {
       alert("Failed to upload image");
     }
   };
@@ -178,14 +201,14 @@ export default function CreatePackage() {
   };
 
   const removeOption = (index: number) => {
-    if (confirm("Are you sure you want to remove this option?")) {
+    if (window.confirm("Are you sure you want to remove this option?")) {
       const newOptions = formData.options.filter((_, i) => i !== index);
       setFormData({ ...formData, options: newOptions });
-      setExpandedOptions(expandedOptions.filter((i) => i !== index).map((i, idx) => idx));
+      setExpandedOptions(expandedOptions.filter((i) => i !== index).map((_, idx) => idx));
     }
   };
 
-  const updateOption = (index: number, field: string, value: any) => {
+  const updateOption = <K extends keyof Option>(index: number, field: K, value: Option[K]) => {
     const updatedOptions = [...formData.options];
     updatedOptions[index] = { ...updatedOptions[index], [field]: value };
     setFormData({ ...formData, options: updatedOptions });
@@ -203,7 +226,7 @@ export default function CreatePackage() {
           images: [...currentAccommodation.images, url],
         });
       }
-    } catch (error) {
+    } catch (err) {
       alert("Failed to upload image");
     }
   };
@@ -231,14 +254,16 @@ export default function CreatePackage() {
     optionIndex: number,
     dayIndex: number,
     field: keyof ItineraryDay,
-    value: any
+    value: string | string[] | ItineraryBlock[]
   ) => {
     const opt = formData.options[optionIndex];
     const updatedDays = [...opt.itineraryDays];
     if (field === "meals" && typeof value === "string") {
       updatedDays[dayIndex].meals = value.split(",").map((s) => s.trim());
     } else if (field === "blocks" && Array.isArray(value)) {
-      updatedDays[dayIndex].blocks = value;
+      updatedDays[dayIndex].blocks = value as ItineraryBlock[];
+    } else if (field === "title" && typeof value === "string") {
+      updatedDays[dayIndex].title = value;
     } else {
       (updatedDays[dayIndex] as any)[field] = value;
     }
@@ -270,14 +295,16 @@ export default function CreatePackage() {
     dayIndex: number,
     blockIndex: number,
     field: keyof ItineraryBlock,
-    value: any
+    value: string | string[]
   ) => {
     const opt = formData.options[optionIndex];
     const updatedBlocks = [...opt.itineraryDays[dayIndex].blocks];
     if (field === "activities" && typeof value === "string") {
       updatedBlocks[blockIndex].activities = value.split(",").map((s) => s.trim());
-    } else {
-      (updatedBlocks[blockIndex] as any)[field] = value;
+    } else if (field === "time" && typeof value === "string") {
+      updatedBlocks[blockIndex].time = value;
+    } else if (field === "description" && typeof value === "string") {
+      updatedBlocks[blockIndex].description = value;
     }
     updateItineraryDay(optionIndex, dayIndex, "blocks", updatedBlocks);
   };
@@ -291,7 +318,7 @@ export default function CreatePackage() {
   // ----------------------------- Price Tiers Management -----------------------------
   const addPriceTier = (optionIndex: number) => {
     const opt = formData.options[optionIndex];
-    const newTiers = [...(opt.priceTiers || []), { minPax: 1, maxPax: 1, pricePerPerson: 0 }];
+    const newTiers = [...opt.priceTiers, { minPax: 1, maxPax: 1, pricePerPerson: 0 }];
     updateOption(optionIndex, "priceTiers", newTiers);
   };
 
@@ -317,7 +344,7 @@ export default function CreatePackage() {
   };
 
   // ----------------------------- Submit -----------------------------
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     const slug = formData.title
@@ -338,11 +365,11 @@ export default function CreatePackage() {
       if (res.ok) {
         router.push("/admin/packages");
       } else {
-        const error = await res.json();
+        const error = (await res.json()) as { error: string };
         alert(error.error || "Failed to create package");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       alert("An error occurred");
     } finally {
       setLoading(false);
@@ -362,25 +389,85 @@ export default function CreatePackage() {
             </button>
           </div>
           <div className="p-6">
-            {/* Preview content same as before (omitted for brevity) */}
             <div className="mb-6">
-              <Image src={previewData.heroImage || "/placeholder.jpg"} alt="Hero" width={800} height={400} className="rounded-lg object-cover" />
+              <Image
+                src={previewData.heroImage || "/placeholder.jpg"}
+                alt="Hero"
+                width={800}
+                height={400}
+                className="rounded-lg object-cover"
+              />
             </div>
             <h1 className="text-3xl font-bold mb-4">{previewData.title}</h1>
             <p className="mb-4">{previewData.overview}</p>
             <h2 className="text-2xl font-bold mt-6 mb-2">Highlights</h2>
             <ul className="list-disc pl-5 mb-4">
-              {previewData.highlights.map((h, i) => <li key={i}>{h}</li>)}
+              {previewData.highlights.map((h, i) => (
+                <li key={i}>{h}</li>
+              ))}
             </ul>
-            {/* ... rest of preview ... */}
+            {previewData.mapImage && (
+              <div className="mb-6">
+                <h2 className="text-xl font-bold mb-2">Map</h2>
+                <Image src={previewData.mapImage} alt="Map" width={600} height={300} className="rounded" />
+              </div>
+            )}
+            {previewData.options.map((opt, idx) => (
+              <div key={idx} className="border-t pt-4 mt-4">
+                <h3 className="text-xl font-bold">{opt.optionTitle}</h3>
+                <p>{opt.description}</p>
+                <p><strong>Activities:</strong> {opt.activities}</p>
+                <h4 className="font-semibold mt-2">Itinerary</h4>
+                {opt.itineraryDays.map((day, dIdx) => (
+                  <div key={dIdx} className="ml-4 mb-3">
+                    <strong>Day {day.day}: {day.title}</strong>
+                    {day.blocks.map((block, bIdx) => (
+                      <div key={bIdx} className="ml-4 mt-1">
+                        <em>{block.time}</em>
+                        <p>{block.description}</p>
+                        {block.activities.length > 0 && <p>Activities: {block.activities.join(", ")}</p>}
+                      </div>
+                    ))}
+                    {day.meals.length > 0 && <p>Meals: {day.meals.join(", ")}</p>}
+                    {day.overnight && <p>Overnight: {day.overnight}</p>}
+                  </div>
+                ))}
+                <h4 className="font-semibold mt-2">Accommodation</h4>
+                <p><strong>{opt.accommodation.title}</strong></p>
+                <p>{opt.accommodation.description}</p>
+                <div className="flex gap-2 mt-1">
+                  {opt.accommodation.images.map((img, iidx) => (
+                    <div key={iidx} className="relative h-20 w-20">
+                      <Image src={img} alt="Acc" fill className="object-cover rounded" />
+                    </div>
+                  ))}
+                </div>
+                {opt.priceType === "fixed" && opt.priceAmount && (
+                  <div className="text-green-700 font-bold text-xl">${opt.priceAmount.toLocaleString()} USD</div>
+                )}
+                {opt.priceType === "tiered" && opt.priceTiers.length > 0 && (
+                  <div className="text-green-700 font-semibold">
+                    Prices per person:
+                    <ul className="list-disc ml-5">
+                      {opt.priceTiers.map((tier, ti) => (
+                        <li key={ti}>
+                          {tier.minPax}-{tier.maxPax} pax: ${tier.pricePerPerson.toLocaleString()} USD
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {opt.priceType === "contact" && <div className="text-orange-600 font-semibold">Contact for price</div>}
+              </div>
+            ))}
           </div>
         </div>
       </div>
     );
   };
 
-  // Section component for collapsible sections
-  const Section = ({ title, icon, children, defaultOpen = true }: any) => {
+  // Section component with typed props
+  const Section = ({ title, icon, children, defaultOpen = true }: SectionProps) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     return (
       <div className="bg-gray-50 rounded-xl border mb-6 overflow-hidden">
@@ -403,13 +490,10 @@ export default function CreatePackage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header with actions */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.back()}
-              className="p-2 hover:bg-gray-200 rounded-full transition"
-            >
+            <button onClick={() => router.back()} className="p-2 hover:bg-gray-200 rounded-full transition">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Create Safari Package</h1>
@@ -434,7 +518,7 @@ export default function CreatePackage() {
                 <input
                   type="text"
                   required
-                  className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 />
@@ -444,7 +528,7 @@ export default function CreatePackage() {
                 <select
                   className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value as Category })}
                 >
                   <option value="Northern Circuit">Northern Circuit</option>
                   <option value="Southern Circuit">Southern Circuit</option>
@@ -464,16 +548,18 @@ export default function CreatePackage() {
             </div>
           </Section>
 
-          {/* Images Section – improved upload with preview and remove */}
+          {/* Images Section */}
           <Section title="Images" icon={<ImageIcon className="w-5 h-5 text-blue-600" />} defaultOpen>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { label: "Card Image", field: "cardImage", ref: cardImageRef, current: images.cardImage },
-                { label: "Hero Image", field: "heroImage", ref: heroImageRef, current: images.heroImage },
-                { label: "Map Image", field: "mapImage", ref: mapImageRef, current: formData.mapImage },
+                { label: "Card Image", field: "cardImage" as const, ref: cardImageRef, current: images.cardImage, required: true },
+                { label: "Hero Image", field: "heroImage" as const, ref: heroImageRef, current: images.heroImage, required: true },
+                { label: "Map Image", field: "mapImage" as const, ref: mapImageRef, current: formData.mapImage, required: false },
               ].map((img) => (
                 <div key={img.field} className="border rounded-lg p-4 bg-white">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{img.label} {img.field !== "mapImage" && "*"}</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {img.label} {img.required && "*"}
+                  </label>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -487,7 +573,7 @@ export default function CreatePackage() {
                       accept="image/*"
                       ref={img.ref}
                       className="hidden"
-                      onChange={(e) => handleImageUpload(e, img.field as any)}
+                      onChange={(e) => handleImageUpload(e, img.field)}
                     />
                   </div>
                   {img.current && (
@@ -721,7 +807,7 @@ export default function CreatePackage() {
                       {/* Pricing */}
                       <div className="border-t pt-4">
                         <label className="block font-semibold mb-2">Pricing</label>
-                        <select className="w-full p-2 border rounded-lg mb-3" value={opt.priceType} onChange={(e) => updateOption(idx, "priceType", e.target.value as any)}>
+                        <select className="w-full p-2 border rounded-lg mb-3" value={opt.priceType} onChange={(e) => updateOption(idx, "priceType", e.target.value as "fixed" | "tiered" | "contact")}>
                           <option value="fixed">Fixed Price (per person)</option>
                           <option value="tiered">Tiered by Group Size</option>
                           <option value="contact">Contact for Price</option>
