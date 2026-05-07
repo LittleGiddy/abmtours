@@ -1,4 +1,4 @@
-// app/safaris/[slug]/page.tsx (with animations)
+// app/safaris/[slug]/page.tsx
 "use client";
 import { useEffect, useState, use } from "react";
 import Image from "next/image";
@@ -61,7 +61,13 @@ interface PackageData {
   excludedList?: string[];
 }
 
-// Raw API response types (to avoid 'any')
+// Raw API response types (to avoid `any`)
+interface RawItineraryBlock {
+  time: string;
+  description: string;
+  activities?: string[];
+}
+
 interface RawItineraryDay {
   day: number;
   title: string;
@@ -69,7 +75,7 @@ interface RawItineraryDay {
   activities?: string[];
   meals?: string | string[];
   overnight?: string;
-  blocks?: ItineraryBlock[];
+  blocks?: RawItineraryBlock[];
 }
 
 interface RawOption {
@@ -85,7 +91,7 @@ interface RawOption {
   showMoreContent?: string;
 }
 
-// Animation variants
+// Animation variants (unchanged)
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
@@ -135,12 +141,28 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
         }
 
         const normalizedOptions = (data.options as RawOption[]).map((opt) => {
-          let itineraryDays: ItineraryDay[] = opt.itineraryDays || [];
-          if (itineraryDays.length > 0 && !itineraryDays[0].blocks) {
-            itineraryDays = itineraryDays.map((day: RawItineraryDay) => ({
+          // Convert old style (without blocks) to new block style
+          let itineraryDays: ItineraryDay[];
+          const oldDays = opt.itineraryDays || [];
+          if (oldDays.length > 0 && !oldDays[0].blocks) {
+            // Old format: each day has description, activities, meals, overnight
+            itineraryDays = oldDays.map((day) => ({
               day: day.day,
               title: day.title || "",
               blocks: [{ time: "Full day", description: day.description || "", activities: day.activities || [] }],
+              meals: day.meals ? (Array.isArray(day.meals) ? day.meals : [day.meals]) : undefined,
+              overnight: day.overnight || "",
+            }));
+          } else {
+            // New format: already have blocks
+            itineraryDays = oldDays.map((day) => ({
+              day: day.day,
+              title: day.title || "",
+              blocks: day.blocks?.map((block) => ({
+                time: block.time,
+                description: block.description,
+                activities: block.activities || [],
+              })) || [],
               meals: day.meals ? (Array.isArray(day.meals) ? day.meals : [day.meals]) : undefined,
               overnight: day.overnight || "",
             }));
@@ -179,11 +201,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-        <motion.div
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-gray-600 dark:text-gray-300"
-        >
+        <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1.5 }} className="text-gray-600 dark:text-gray-300">
           Loading safari details...
         </motion.div>
       </div>
