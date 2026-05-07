@@ -513,7 +513,7 @@ export default function BookNow() {
                   <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                     <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
-                  <div><p className="font-semibold text-lg">Booking Submitted!</p><p className="text-sm">We'll contact you within 24 hours.</p></div>
+                  <div><p className="font-semibold text-lg">Booking Submitted!</p><p className="text-sm">We&apos;ll contact you within 24 hours.</p></div>
                 </div>
               </div>
             )}
