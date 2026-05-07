@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Trash2, Upload, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
 
 interface ItineraryDay {
   day: number;
@@ -126,7 +127,6 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     }
   };
 
-  // Type-safe update option
   const updateOption = <K extends keyof Option>(index: number, field: K, value: Option[K]) => {
     if (formData) {
       const updatedOptions = [...formData.options];
@@ -174,7 +174,6 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     }
   };
 
-  // Type-safe updateItineraryDay (no 'any')
   const updateItineraryDay = (
     optionIndex: number,
     dayIndex: number,
@@ -213,6 +212,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     const tiers = opt.priceTiers || [];
     updateOption(optionIndex, "priceTiers", [...tiers, { minPax: 1, maxPax: 1, pricePerPerson: 0 }]);
   };
+
   const updatePriceTier = (
     optionIndex: number,
     tierIndex: number,
@@ -226,6 +226,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
       updateOption(optionIndex, "priceTiers", tiers);
     }
   };
+
   const removePriceTier = (optionIndex: number, tierIndex: number) => {
     const opt = formData!.options[optionIndex];
     const tiers = (opt.priceTiers || []).filter((_, i) => i !== tierIndex);
@@ -292,426 +293,344 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
   };
 
   if (initialLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading package...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-600">Loading package...</div>
+      </div>
+    );
   }
   if (!formData) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">Package not found</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-red-600">Package not found</div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold mb-6">Edit Safari Package</h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="border-b pb-4">
-            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Title *</label>
-                <input
-                  type="text"
-                  required
-                  className="w-full p-2 border rounded"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Category *</label>
-                <select
-                  className="w-full p-2 border rounded"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as PackageData["category"] })}
-                >
-                  <option value="Northern Circuit">Northern Circuit</option>
-                  <option value="Southern Circuit">Southern Circuit</option>
-                  <option value="Beach Vacation">Beach Vacation</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Short Description *</label>
-                <textarea
-                  required
-                  rows={2}
-                  className="w-full p-2 border rounded"
-                  value={formData.shortDescription}
-                  onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                />
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Edit Safari Package</h1>
+          <p className="text-gray-600 mt-1">Modify package details, images, itinerary, and pricing</p>
+        </div>
 
-          {/* Images */}
-          <div className="border-b pb-4">
-            <h2 className="text-xl font-semibold mb-4">Images</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label>Card Image *</label>
-                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, "cardImage")} />
-                {images.cardImage && (
-                  <div className="relative h-32 w-32 mt-2">
-                    <Image src={images.cardImage} alt="card" fill className="object-cover rounded" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <label>Hero Image *</label>
-                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, "heroImage")} />
-                {images.heroImage && (
-                  <div className="relative h-32 w-full mt-2">
-                    <Image src={images.heroImage} alt="hero" fill className="object-cover rounded" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <label>Map Image</label>
-                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, "mapImage")} />
-                {formData.mapImage && (
-                  <div className="relative h-32 w-48 mt-2">
-                    <Image src={formData.mapImage} alt="map" fill className="object-cover rounded" />
-                  </div>
-                )}
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* ========== BASIC INFORMATION ========== */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-xl font-semibold text-gray-800">Basic Information</h2>
             </div>
-          </div>
-
-          {/* Content */}
-          <div className="border-b pb-4">
-            <h2 className="text-xl font-semibold mb-4">Content</h2>
-            <div className="space-y-4">
-              <div>
-                <label>Overview *</label>
-                <textarea
-                  required
-                  rows={4}
-                  className="w-full p-2 border rounded"
-                  value={formData.overview}
-                  onChange={(e) => setFormData({ ...formData, overview: e.target.value })}
-                />
-              </div>
-              <div>
-                <label>Highlights</label>
-                <div className="flex gap-2 mb-2">
+            <div className="p-6 space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
                   <input
                     type="text"
-                    className="flex-1 p-2 border rounded"
-                    value={highlightInput}
-                    onChange={(e) => setHighlightInput(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   />
-                  <button type="button" onClick={addHighlight} className="bg-blue-500 text-white px-4 rounded">
-                    Add
-                  </button>
                 </div>
-                <ul className="list-disc pl-5">
-                  {formData.highlights.map((h, i) => (
-                    <li key={i} className="flex justify-between">
-                      <span>{h}</span>
-                      <button type="button" onClick={() => removeHighlight(i)} className="text-red-500 text-sm">
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <label>Arrival Text *</label>
-                <textarea
-                  required
-                  rows={3}
-                  className="w-full p-2 border rounded"
-                  value={formData.arrivalText}
-                  onChange={(e) => setFormData({ ...formData, arrivalText: e.target.value })}
-                />
-              </div>
-              <div>
-                <label>Quick Information</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    className="flex-1 p-2 border rounded"
-                    value={quickInfoInput}
-                    onChange={(e) => setQuickInfoInput(e.target.value)}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                  <select
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value as PackageData["category"] })}
+                  >
+                    <option value="Northern Circuit">Northern Circuit</option>
+                    <option value="Southern Circuit">Southern Circuit</option>
+                    <option value="Beach Vacation">Beach Vacation</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Short Description *</label>
+                  <textarea
+                    required
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={formData.shortDescription}
+                    onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
                   />
-                  <button type="button" onClick={addQuickInfo} className="bg-blue-500 text-white px-4 rounded">
-                    Add
-                  </button>
                 </div>
-                <ul className="list-disc pl-5">{formData.quickInfo.map((q, i) => <li key={i}>{q}</li>)}</ul>
               </div>
             </div>
           </div>
 
-          {/* Options */}
-          <div className="border-b pb-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Tour Options</h2>
-              <button type="button" onClick={addOption} className="bg-green-500 text-white px-4 py-2 rounded">
-                Add Option
-              </button>
+          {/* ========== IMAGES ========== */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-xl font-semibold text-gray-800">Images</h2>
             </div>
-            {formData.options.map((opt, idx) => {
-              const accommodation = opt.accommodation || { title: "", description: "", images: [] };
-              const itineraryDays = opt.itineraryDays || [];
-              return (
-                <div key={idx} className="border rounded-lg p-4 mb-6">
-                  <h3 className="font-bold mb-3">Option {idx + 1}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label>Option Title *</label>
-                      <input
-                        type="text"
-                        required
-                        className="w-full p-2 border rounded"
-                        value={opt.optionTitle}
-                        onChange={(e) => updateOption(idx, "optionTitle", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label>Activities (short) *</label>
-                      <input
-                        type="text"
-                        required
-                        className="w-full p-2 border rounded"
-                        value={opt.activities}
-                        onChange={(e) => updateOption(idx, "activities", e.target.value)}
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label>Description *</label>
-                      <textarea
-                        required
-                        rows={2}
-                        className="w-full p-2 border rounded"
-                        value={opt.description}
-                        onChange={(e) => updateOption(idx, "description", e.target.value)}
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label>Main Image *</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const f = e.target.files?.[0];
-                          if (f) await uploadOptionImage(idx, f, true);
-                        }}
-                      />
-                      {opt.mainImage && (
-                        <div className="relative h-32 w-48 mt-2">
-                          <Image src={opt.mainImage} alt="main" fill className="object-cover rounded" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Accommodation */}
-                  <div className="border-t pt-3 mt-3">
-                    <h4 className="font-semibold">Accommodation</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label>Title</label>
-                        <input
-                          type="text"
-                          className="w-full p-2 border rounded"
-                          value={accommodation.title}
-                          onChange={(e) =>
-                            updateOption(idx, "accommodation", { ...accommodation, title: e.target.value })
-                          }
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label>Description</label>
-                        <textarea
-                          rows={2}
-                          className="w-full p-2 border rounded"
-                          value={accommodation.description}
-                          onChange={(e) =>
-                            updateOption(idx, "accommodation", { ...accommodation, description: e.target.value })
-                          }
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label>Accommodation Images</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={async (e) => {
-                          const files = Array.from(e.target.files || []);
-                          for (const file of files) await uploadOptionImage(idx, file, false);
-                        }}
-                      />
-                      <div className="grid grid-cols-4 gap-2 mt-2">
-                        {accommodation.images.map((img, imgIdx) => (
-                          <div key={imgIdx} className="relative h-20">
-                            <Image src={img} alt="acc" fill className="object-cover rounded" />
-                            <button
-                              type="button"
-                              onClick={() => removeAccommodationImage(idx, imgIdx)}
-                              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Itinerary Days */}
-                  <div className="border-t pt-3 mt-3">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-semibold">Itinerary Days</h4>
+            <div className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Card Image */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Card Image *</label>
+                  <input type="file" accept="image/*" className="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onChange={(e) => handleImageUpload(e, "cardImage")} />
+                  {images.cardImage && (
+                    <div className="relative mt-3 aspect-square w-full max-w-[150px] rounded-lg overflow-hidden border bg-white">
+                      <Image src={images.cardImage} alt="Card" fill className="object-cover" />
                       <button
                         type="button"
-                        onClick={() => addItineraryDay(idx)}
-                        className="bg-indigo-500 text-white px-2 py-1 text-sm rounded"
+                        onClick={() => setImages((prev) => ({ ...prev, cardImage: "" }))}
+                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-sm"
                       >
-                        Add Day
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
-                    {itineraryDays.map((day, dIdx) => (
-                      <div key={dIdx} className="border p-2 mt-2 rounded">
-                        <div className="flex justify-between">
-                          <strong>Day {day.day}</strong>
-                          <button
-                            type="button"
-                            onClick={() => removeItineraryDay(idx, dIdx)}
-                            className="text-red-500 text-sm"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Title"
-                          className="w-full p-1 border my-1"
-                          value={day.title}
-                          onChange={(e) => updateItineraryDay(idx, dIdx, "title", e.target.value)}
-                        />
-                        <textarea
-                          placeholder="Description"
-                          rows={2}
-                          className="w-full p-1 border my-1"
-                          value={day.description}
-                          onChange={(e) => updateItineraryDay(idx, dIdx, "description", e.target.value)}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Activities (comma separated)"
-                          className="w-full p-1 border my-1"
-                          value={(day.activities || []).join(", ")}
-                          onChange={(e) => updateItineraryDay(idx, dIdx, "activities", e.target.value)}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Meals (e.g., Breakfast, Lunch)"
-                          className="w-full p-1 border my-1"
-                          value={day.meals || ""}
-                          onChange={(e) => updateItineraryDay(idx, dIdx, "meals", e.target.value)}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Overnight (e.g., Safari Lodge)"
-                          className="w-full p-1 border my-1"
-                          value={day.overnight || ""}
-                          onChange={(e) => updateItineraryDay(idx, dIdx, "overnight", e.target.value)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Pricing */}
-                  <div className="border-t pt-3 mt-3">
-                    <label>Price Type</label>
-                    <select
-                      className="w-full p-2 border rounded"
-                      value={opt.priceType}
-                      onChange={(e) => updateOption(idx, "priceType", e.target.value as Option["priceType"])}
-                    >
-                      <option value="fixed">Fixed Price</option>
-                      <option value="tiered">Tiered by Group Size</option>
-                      <option value="contact">Contact for Price</option>
-                    </select>
-                    {opt.priceType === "fixed" && (
-                      <div className="mt-2">
-                        <label>Price Amount (USD)</label>
-                        <input
-                          type="number"
-                          className="w-full p-2 border rounded"
-                          value={opt.priceAmount || ""}
-                          onChange={(e) => updateOption(idx, "priceAmount", parseFloat(e.target.value))}
-                        />
-                      </div>
-                    )}
-                    {opt.priceType === "tiered" && (
-                      <div className="mt-2">
-                        <div className="flex justify-between items-center">
-                          <label>Price Tiers</label>
-                          <button
-                            type="button"
-                            onClick={() => addPriceTier(idx)}
-                            className="text-sm bg-gray-200 px-2 py-1 rounded"
-                          >
-                            + Add Tier
-                          </button>
-                        </div>
-                        {(opt.priceTiers || []).map((tier, tIdx) => (
-                          <div key={tIdx} className="flex gap-2 mt-1">
-                            <input
-                              type="number"
-                              placeholder="Min Pax"
-                              className="w-24 p-1 border rounded"
-                              value={tier.minPax}
-                              onChange={(e) => updatePriceTier(idx, tIdx, "minPax", parseInt(e.target.value))}
-                            />
-                            <input
-                              type="number"
-                              placeholder="Max Pax"
-                              className="w-24 p-1 border rounded"
-                              value={tier.maxPax}
-                              onChange={(e) => updatePriceTier(idx, tIdx, "maxPax", parseInt(e.target.value))}
-                            />
-                            <input
-                              type="number"
-                              placeholder="Price USD"
-                              className="w-32 p-1 border rounded"
-                              value={tier.pricePerPerson}
-                              onChange={(e) => updatePriceTier(idx, tIdx, "pricePerPerson", parseFloat(e.target.value))}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removePriceTier(idx, tIdx)}
-                              className="text-red-500 text-sm"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="mt-3">
-                      <label>Show More Content (Optional)</label>
-                      <textarea
-                        rows={3}
-                        className="w-full p-2 border rounded"
-                        value={opt.showMoreContent}
-                        onChange={(e) => updateOption(idx, "showMoreContent", e.target.value)}
-                      />
-                    </div>
-                  </div>
+                  )}
                 </div>
-              );
-            })}
+                {/* Hero Image */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Hero Image *</label>
+                  <input type="file" accept="image/*" className="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onChange={(e) => handleImageUpload(e, "heroImage")} />
+                  {images.heroImage && (
+                    <div className="relative mt-3 aspect-video w-full rounded-lg overflow-hidden border bg-white">
+                      <Image src={images.heroImage} alt="Hero" fill className="object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setImages((prev) => ({ ...prev, heroImage: "" }))}
+                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-sm"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {/* Map Image */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Map Image</label>
+                  <input type="file" accept="image/*" className="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onChange={(e) => handleImageUpload(e, "mapImage")} />
+                  {formData.mapImage && (
+                    <div className="relative mt-3 aspect-[4/3] w-full rounded-lg overflow-hidden border bg-white">
+                      <Image src={formData.mapImage} alt="Map" fill className="object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, mapImage: "" }))}
+                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 shadow-sm"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={() => router.back()} className="px-4 py-2 border rounded">
-              Cancel
-            </button>
-            <button type="submit" disabled={loading} className="bg-blue-600 text-white px-6 py-2 rounded disabled:opacity-50">
+          {/* ========== CONTENT ========== */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="text-xl font-semibold text-gray-800">Content</h2>
+            </div>
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Overview *</label>
+                <textarea required rows={4} className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={formData.overview} onChange={(e) => setFormData({ ...formData, overview: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Highlights</label>
+                <div className="flex gap-2 mb-3">
+                  <input type="text" className="flex-1 px-4 py-2 border border-gray-300 rounded-lg" value={highlightInput} onChange={(e) => setHighlightInput(e.target.value)} placeholder="Enter highlight" />
+                  <button type="button" onClick={addHighlight} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Add</button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.highlights.map((h, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                      {h}
+                      <button type="button" onClick={() => removeHighlight(i)} className="text-red-600 hover:text-red-800 ml-1">&times;</button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Arrival Text *</label>
+                <textarea required rows={3} className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={formData.arrivalText} onChange={(e) => setFormData({ ...formData, arrivalText: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Quick Information</label>
+                <div className="flex gap-2 mb-3">
+                  <input type="text" className="flex-1 px-4 py-2 border border-gray-300 rounded-lg" value={quickInfoInput} onChange={(e) => setQuickInfoInput(e.target.value)} placeholder="e.g., Best Time: June-Oct" />
+                  <button type="button" onClick={addQuickInfo} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Add</button>
+                </div>
+                <ul className="list-disc list-inside space-y-1">
+                  {formData.quickInfo.map((q, i) => <li key={i} className="text-gray-700">{q}</li>)}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* ========== TOUR OPTIONS ========== */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">Tour Options</h2>
+              <button type="button" onClick={addOption} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition">
+                <Plus className="w-4 h-4" /> Add Option
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              {formData.options.length === 0 && (
+                <div className="text-center text-gray-500 py-12">No options added yet. Click &quot;Add Option&quot; to start.</div>
+              )}
+              {formData.options.map((opt, idx) => {
+                const accommodation = opt.accommodation || { title: "", description: "", images: [] };
+                const itineraryDays = opt.itineraryDays || [];
+                return (
+                  <div key={idx} className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="bg-gray-50 px-6 py-3 flex justify-between items-center border-b">
+                      <h3 className="font-semibold text-gray-800">Option {idx + 1}</h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm("Remove this option?")) {
+                            const newOptions = formData.options.filter((_, i) => i !== idx);
+                            setFormData({ ...formData, options: newOptions });
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-800 text-sm flex items-center gap-1"
+                      >
+                        <Trash2 className="w-4 h-4" /> Remove
+                      </button>
+                    </div>
+                    <div className="p-6 space-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Option Title *</label>
+                          <input type="text" required className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={opt.optionTitle} onChange={(e) => updateOption(idx, "optionTitle", e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Activities (short) *</label>
+                          <input type="text" required className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={opt.activities} onChange={(e) => updateOption(idx, "activities", e.target.value)} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                          <textarea required rows={2} className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={opt.description} onChange={(e) => updateOption(idx, "description", e.target.value)} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Main Image *</label>
+                          <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => document.getElementById(`mainImage-${idx}`)?.click()} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 flex items-center gap-1">
+                              <Upload className="w-4 h-4" /> Upload
+                            </button>
+                            <input id={`mainImage-${idx}`} type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) await uploadOptionImage(idx, f, true); }} />
+                          </div>
+                          {opt.mainImage && (
+                            <div className="relative mt-3 w-48 h-32 rounded-lg overflow-hidden border">
+                              <Image src={opt.mainImage} alt="main" fill className="object-cover" />
+                              <button type="button" onClick={() => updateOption(idx, "mainImage", "")} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1"><Trash2 className="w-3 h-3" /></button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Accommodation */}
+                      <div className="border-t pt-4 mt-2">
+                        <h4 className="font-semibold text-gray-800 mb-3">Accommodation Details</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm text-gray-700 mb-1">Accommodation Title</label>
+                            <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={accommodation.title} onChange={(e) => updateOption(idx, "accommodation", { ...accommodation, title: e.target.value })} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-sm text-gray-700 mb-1">Description</label>
+                            <textarea rows={2} className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={accommodation.description} onChange={(e) => updateOption(idx, "accommodation", { ...accommodation, description: e.target.value })} />
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <label className="block text-sm text-gray-700 mb-2">Accommodation Images</label>
+                          <button type="button" onClick={() => document.getElementById(`accImages-${idx}`)?.click()} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 flex items-center gap-1">
+                            <Upload className="w-4 h-4" /> Add Images
+                          </button>
+                          <input id={`accImages-${idx}`} type="file" accept="image/*" multiple className="hidden" onChange={async (e) => { const files = Array.from(e.target.files || []); for (const file of files) await uploadOptionImage(idx, file, false); }} />
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                            {accommodation.images.map((img, imgIdx) => (
+                              <div key={imgIdx} className="relative aspect-square rounded-lg overflow-hidden border bg-gray-100">
+                                <Image src={img} alt="accommodation" fill className="object-cover" />
+                                <button type="button" onClick={() => removeAccommodationImage(idx, imgIdx)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1"><Trash2 className="w-3 h-3" /></button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Itinerary Days */}
+                      <div className="border-t pt-4">
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="font-semibold text-gray-800">Itinerary Days</h4>
+                          <button type="button" onClick={() => addItineraryDay(idx)} className="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm">+ Add Day</button>
+                        </div>
+                        <div className="space-y-3">
+                          {itineraryDays.map((day, dIdx) => (
+                            <div key={dIdx} className="border rounded-lg p-4 bg-gray-50">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="font-medium">Day {day.day}</span>
+                                <button type="button" onClick={() => removeItineraryDay(idx, dIdx)} className="text-red-500 text-sm">Remove Day</button>
+                              </div>
+                              <input type="text" placeholder="Title" className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg" value={day.title} onChange={(e) => updateItineraryDay(idx, dIdx, "title", e.target.value)} />
+                              <textarea placeholder="Description" rows={2} className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg" value={day.description} onChange={(e) => updateItineraryDay(idx, dIdx, "description", e.target.value)} />
+                              <input type="text" placeholder="Activities (comma separated)" className="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg" value={(day.activities || []).join(", ")} onChange={(e) => updateItineraryDay(idx, dIdx, "activities", e.target.value)} />
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <input type="text" placeholder="Meals (e.g., Breakfast, Lunch)" className="px-3 py-2 border border-gray-300 rounded-lg" value={day.meals || ""} onChange={(e) => updateItineraryDay(idx, dIdx, "meals", e.target.value)} />
+                                <input type="text" placeholder="Overnight (e.g., Safari Lodge)" className="px-3 py-2 border border-gray-300 rounded-lg" value={day.overnight || ""} onChange={(e) => updateItineraryDay(idx, dIdx, "overnight", e.target.value)} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Pricing */}
+                      <div className="border-t pt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Price Type</label>
+                        <select className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3" value={opt.priceType} onChange={(e) => updateOption(idx, "priceType", e.target.value as Option["priceType"])}>
+                          <option value="fixed">Fixed Price (per person)</option>
+                          <option value="tiered">Tiered by Group Size</option>
+                          <option value="contact">Contact for Price</option>
+                        </select>
+                        {opt.priceType === "fixed" && (
+                          <div>
+                            <label className="block text-sm text-gray-700 mb-1">Price (USD per person)</label>
+                            <input type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={opt.priceAmount || ""} onChange={(e) => updateOption(idx, "priceAmount", parseFloat(e.target.value))} />
+                          </div>
+                        )}
+                        {opt.priceType === "tiered" && (
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <label className="text-sm font-medium">Price Tiers</label>
+                              <button type="button" onClick={() => addPriceTier(idx)} className="text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">+ Add Tier</button>
+                            </div>
+                            <div className="space-y-2">
+                              {(opt.priceTiers || []).map((tier, tIdx) => (
+                                <div key={tIdx} className="flex flex-wrap gap-2 items-end">
+                                  <div className="w-24"><input type="number" placeholder="Min" className="w-full p-1 border rounded text-sm" value={tier.minPax} onChange={(e) => updatePriceTier(idx, tIdx, "minPax", parseInt(e.target.value))} /></div>
+                                  <div className="w-24"><input type="number" placeholder="Max" className="w-full p-1 border rounded text-sm" value={tier.maxPax} onChange={(e) => updatePriceTier(idx, tIdx, "maxPax", parseInt(e.target.value))} /></div>
+                                  <div className="w-32"><input type="number" placeholder="Price" className="w-full p-1 border rounded text-sm" value={tier.pricePerPerson} onChange={(e) => updatePriceTier(idx, tIdx, "pricePerPerson", parseFloat(e.target.value))} /></div>
+                                  <button type="button" onClick={() => removePriceTier(idx, tIdx)} className="text-red-500 text-sm">Remove</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="mt-4">
+                          <label className="block text-sm text-gray-700 mb-1">Show More Content (optional)</label>
+                          <textarea rows={3} className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={opt.showMoreContent} onChange={(e) => updateOption(idx, "showMoreContent", e.target.value)} placeholder="Additional details shown after 'Read more'..." />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex justify-end gap-4 pt-4 sticky bottom-4 bg-gray-50 py-4 border-t border-gray-200 -mx-4 px-4">
+            <button type="button" onClick={() => router.back()} className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+            <button type="submit" disabled={loading} className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-2.5 rounded-lg font-semibold transition disabled:opacity-50 flex items-center gap-2">
+              {loading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>}
               {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
