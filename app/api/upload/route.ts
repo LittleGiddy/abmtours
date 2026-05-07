@@ -1,40 +1,36 @@
 // app/api/upload/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { existsSync } from "fs";
+import { NextRequest, NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get('file') as File;
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create uploads directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
+    // Optional: file size validation (max 10 MB)
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 });
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const ext = file.name.split(".").pop();
-    const filename = `${timestamp}-${Math.random().toString(36).substring(7)}.${ext}`;
-    const filepath = path.join(uploadDir, filename);
+    // Optional: allow only images
+    if (!file.type.startsWith('image/')) {
+      return NextResponse.json({ error: 'Only image files are allowed' }, { status: 400 });
+    }
 
-    await writeFile(filepath, buffer);
+    // Upload to Vercel Blob
+    const blob = await put(file.name, file, {
+      access: 'public',
+      addRandomSuffix: true,
+    });
 
-    // Return the public URL path
-    const imageUrl = `/uploads/${filename}`;
-    return NextResponse.json({ url: imageUrl });
+    return NextResponse.json({ url: blob.url });
   } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    console.error('Upload error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
