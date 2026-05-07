@@ -156,9 +156,6 @@ export default function ImportPDFPage() {
     }
   };
 
-  // --------------------------------------------------------------
-  // handleConfirm with automatic duplicate slug resolution
-  // --------------------------------------------------------------
   const handleConfirm = async () => {
     if (!generated) return;
     setSaving(true);
@@ -187,7 +184,6 @@ export default function ImportPDFPage() {
         })
       );
 
-      // Helper to attempt saving with a given slug
       const savePackage = async (slug: string) => {
         const finalPackage = {
           ...generated,
@@ -204,7 +200,6 @@ export default function ImportPDFPage() {
         });
         const data = (await res.json()) as { error?: string };
         if (!res.ok) {
-          // Detect duplicate slug error
           if (data.error && data.error.includes("Slug already exists")) {
             throw new Error("DUPLICATE_SLUG");
           }
@@ -213,7 +208,8 @@ export default function ImportPDFPage() {
         return true;
       };
 
-      let baseSlug = generated.slug || generated.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      // ✅ Fixed: baseSlug is never reassigned → use const
+      const baseSlug = generated.slug || generated.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       let currentSlug = baseSlug;
       let saved = false;
 
@@ -223,11 +219,9 @@ export default function ImportPDFPage() {
           saved = true;
         } catch (err: unknown) {
           if (err instanceof Error && err.message === "DUPLICATE_SLUG") {
-            // Generate a new slug with a number suffix
             const match = currentSlug.match(/-(\d+)$/);
-            let nextNumber = 1;
             if (match) {
-              nextNumber = parseInt(match[1]) + 1;
+              const nextNumber = parseInt(match[1]) + 1;
               currentSlug = currentSlug.replace(/-\d+$/, "") + `-${nextNumber}`;
             } else {
               currentSlug = baseSlug + "-2";
@@ -247,9 +241,6 @@ export default function ImportPDFPage() {
     }
   };
 
-  // --------------------------------------------------------------
-  // JSX (unchanged, kept exactly as original)
-  // --------------------------------------------------------------
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
@@ -361,4 +352,4 @@ export default function ImportPDFPage() {
       </div>
     </div>
   );
-}
+}3
