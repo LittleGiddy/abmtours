@@ -24,7 +24,7 @@ interface ImportedOption {
   priceType: "fixed" | "tiered" | "contact";
   priceAmount?: number;
   priceTiers?: Array<{ minPax: number; maxPax: number; pricePerPerson: number }>;
-  accommodation?: Accommodation; // added
+  accommodation?: Accommodation;
 }
 
 interface ImportedPackageData {
@@ -156,6 +156,9 @@ export default function ImportPDFPage() {
     }
   };
 
+  // --------------------------------------------------------------
+  // handleConfirm with automatic duplicate slug resolution
+  // --------------------------------------------------------------
   const handleConfirm = async () => {
     if (!generated) return;
     setSaving(true);
@@ -184,22 +187,57 @@ export default function ImportPDFPage() {
         })
       );
 
-      const finalPackage = {
-        ...generated,
-        heroImage: heroUrl,
-        cardImage: cardUrl,
-        mapImage: mapUrl,
-        options: finalOptions,
-        slug: generated.slug || generated.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      // Helper to attempt saving with a given slug
+      const savePackage = async (slug: string) => {
+        const finalPackage = {
+          ...generated,
+          heroImage: heroUrl,
+          cardImage: cardUrl,
+          mapImage: mapUrl,
+          options: finalOptions,
+          slug,
+        };
+        const res = await fetch("/api/packages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalPackage),
+        });
+        const data = (await res.json()) as { error?: string };
+        if (!res.ok) {
+          // Detect duplicate slug error
+          if (data.error && data.error.includes("Slug already exists")) {
+            throw new Error("DUPLICATE_SLUG");
+          }
+          throw new Error(data.error || "Save failed");
+        }
+        return true;
       };
 
-      const res = await fetch("/api/packages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalPackage),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error || "Save failed");
+      let baseSlug = generated.slug || generated.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      let currentSlug = baseSlug;
+      let saved = false;
+
+      while (!saved) {
+        try {
+          await savePackage(currentSlug);
+          saved = true;
+        } catch (err: unknown) {
+          if (err instanceof Error && err.message === "DUPLICATE_SLUG") {
+            // Generate a new slug with a number suffix
+            const match = currentSlug.match(/-(\d+)$/);
+            let nextNumber = 1;
+            if (match) {
+              nextNumber = parseInt(match[1]) + 1;
+              currentSlug = currentSlug.replace(/-\d+$/, "") + `-${nextNumber}`;
+            } else {
+              currentSlug = baseSlug + "-2";
+            }
+          } else {
+            throw err;
+          }
+        }
+      }
+
       router.push("/admin/packages");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error";
@@ -209,7 +247,9 @@ export default function ImportPDFPage() {
     }
   };
 
-  // JSX (same as before, no changes)
+  // --------------------------------------------------------------
+  // JSX (unchanged, kept exactly as original)
+  // --------------------------------------------------------------
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
@@ -309,7 +349,9 @@ export default function ImportPDFPage() {
             </details>
 
             <div className="flex gap-4">
-              <button onClick={() => setGenerated(null)} className="px-4 py-2 border rounded">Cancel</button>
+              <button onClick={() => setGenerated(null)} className="px-4 py-2 border rounded">
+                Cancel
+              </button>
               <button onClick={handleConfirm} disabled={saving} className="bg-green-600 text-white px-6 py-2 rounded disabled:opacity-50">
                 {saving ? "Saving..." : "Save to Database"}
               </button>
