@@ -208,7 +208,6 @@ export default function ImportPDFPage() {
         return true;
       };
 
-      // ✅ Fixed: baseSlug is never reassigned → use const
       const baseSlug = generated.slug || generated.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       let currentSlug = baseSlug;
       let saved = false;
@@ -352,4 +351,4 @@ export default function ImportPDFPage() {
       </div>
     </div>
   );
-}3
+}
