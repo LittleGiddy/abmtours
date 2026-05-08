@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Trash2, Upload, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Trash2, Upload, Plus} from "lucide-react";
 
 interface ItineraryDay {
   day: number;
