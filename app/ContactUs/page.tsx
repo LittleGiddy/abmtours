@@ -107,7 +107,7 @@ const ContactUs = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <MapPin className="text-blue-950" />
-                <span>123 Main Street, Dar es Salaam, Tanzania</span>
+                <span>Mjimwema, Kigamboni Dar es salaam</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="text-blue-950" />
