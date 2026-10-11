@@ -103,7 +103,7 @@ export default function SendUsEmail() {
             placeholder="Full Name"
             value={formData.fullName}
             onChange={handleChange}
-            className="input input-bordered w-full mb-4"
+            className="w-full mb-4 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             required
           />
 
@@ -114,7 +114,7 @@ export default function SendUsEmail() {
             placeholder="gideon@email.com"
             value={formData.email}
             onChange={handleChange}
-            className="input input-bordered w-full mb-4"
+            className="w-full mb-4 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             required
           />
 
@@ -124,7 +124,7 @@ export default function SendUsEmail() {
             placeholder="Type your message"
             value={formData.message}
             onChange={handleChange}
-            className="textarea textarea-bordered w-full mb-4"
+            className="w-full mb-4 min-h-[120px] resize-y rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             required
           />
 
