@@ -49,16 +49,16 @@ const AdminReviewsPage = () => {
     e.preventDefault();
     
     try {
-      const url = editingReview 
-        ? `/api/reviews/${editingReview._id}`
-        : '/api/reviews';
-      
+      const url = '/api/reviews';
       const method = editingReview ? 'PUT' : 'POST';
-      
+      const payload = editingReview
+        ? { ...formData, id: editingReview._id }
+        : formData;
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
       
       if (response.ok) {

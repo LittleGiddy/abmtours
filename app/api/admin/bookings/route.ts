@@ -4,10 +4,14 @@ export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
 import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
+import { requireAdmin } from '@/lib/adminAuth';
 import { ObjectId } from 'mongodb';
 
 export async function GET() {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
      const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
     const bookings = await db.collection('bookings').find({}).toArray();
@@ -24,6 +28,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const body = await request.json();
      const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
@@ -48,6 +55,9 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     

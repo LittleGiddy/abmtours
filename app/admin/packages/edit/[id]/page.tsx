@@ -1,6 +1,6 @@
 // app/admin/packages/edit/[id]/page.tsx
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Trash2, Upload, Plus } from "lucide-react";
@@ -47,6 +47,7 @@ interface PackageData {
   arrivalText: string;
   quickInfo: string[];
   options: Option[];
+  photoAssetIds?: string[];
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -60,14 +61,19 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
   const [highlightInput, setHighlightInput] = useState("");
   const [quickInfoInput, setQuickInfoInput] = useState("");
   const [images, setImages] = useState({ cardImage: "", heroImage: "" });
+  // Cloudinary public IDs associated with this package (for cleanup on delete)
+  const assetIdsRef = useRef<string[]>([]);
 
-  const uploadImage = async (file: File): Promise<string> => {
+  const uploadImage = async (file: File): Promise<{ url: string; publicId: string }> => {
     const uploadFormData = new FormData();
     uploadFormData.append("file", file);
     const res = await fetch("/api/upload", { method: "POST", body: uploadFormData });
     if (!res.ok) throw new Error("Upload failed");
-    const data = (await res.json()) as { url: string };
-    return data.url;
+    const data = (await res.json()) as { url: string; publicId?: string };
+    if (data.publicId && !assetIdsRef.current.includes(data.publicId)) {
+      assetIdsRef.current.push(data.publicId);
+    }
+    return { url: data.url, publicId: data.publicId ?? "" };
   };
 
   const handleImageUpload = async (
@@ -76,7 +82,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = await uploadImage(file);
+    const { url } = await uploadImage(file);
     if (field === "cardImage" || field === "heroImage") {
       setImages((prev) => ({ ...prev, [field]: url }));
       setFormData((prev) => (prev ? { ...prev, [field]: url } : prev));
@@ -146,7 +152,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
   };
 
   const uploadOptionImage = async (index: number, file: File, isMainImage: boolean) => {
-    const url = await uploadImage(file);
+    const { url } = await uploadImage(file);
     if (isMainImage) {
       updateOption(index, "mainImage", url);
     } else {
@@ -299,6 +305,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
         }));
         setFormData({ ...data, options: normalizedOptions });
         setImages({ cardImage: data.cardImage || "", heroImage: data.heroImage || "" });
+        assetIdsRef.current = Array.isArray(data.photoAssetIds) ? [...data.photoAssetIds] : [];
       } catch (error) {
         console.error(error);
         alert("Failed to load package");
@@ -315,6 +322,7 @@ export default function EditPackage({ params }: { params: Promise<{ id: string }
     setLoading(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, createdAt, updatedAt, ...updateData } = formData;
+    updateData.photoAssetIds = assetIdsRef.current;
     if (!updateData.slug) {
       updateData.slug = updateData.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     }

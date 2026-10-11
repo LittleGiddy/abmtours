@@ -109,14 +109,18 @@ export default function CreatePackage() {
   const heroImageRef = useRef<HTMLInputElement>(null);
   const mapImageRef = useRef<HTMLInputElement>(null);
 
+  // Cloudinary public IDs for every image uploaded in this session (for cleanup on delete)
+  const assetIdsRef = useRef<string[]>([]);
+
   // ----------------------------- Image upload helper -----------------------------
-  const uploadImage = async (file: File): Promise<string> => {
+  const uploadImage = async (file: File): Promise<{ url: string; publicId: string }> => {
     const uploadFormData = new FormData();
     uploadFormData.append("file", file);
     const res = await fetch("/api/upload", { method: "POST", body: uploadFormData });
     if (!res.ok) throw new Error("Upload failed");
-    const data = (await res.json()) as { url: string };
-    return data.url;
+    const data = (await res.json()) as { url: string; publicId?: string };
+    if (data.publicId) assetIdsRef.current.push(data.publicId);
+    return { url: data.url, publicId: data.publicId ?? "" };
   };
 
   // ----------------------------- Basic Image Handlers -----------------------------
@@ -127,7 +131,7 @@ export default function CreatePackage() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const url = await uploadImage(file);
+      const { url } = await uploadImage(file);
       if (field === "cardImage" || field === "heroImage") {
         setImages((prev) => ({ ...prev, [field]: url }));
       } else if (field === "mapImage") {
@@ -215,7 +219,7 @@ export default function CreatePackage() {
 
   const uploadOptionImage = async (index: number, file: File, isMainImage: boolean) => {
     try {
-      const url = await uploadImage(file);
+      const { url } = await uploadImage(file);
       if (isMainImage) {
         updateOption(index, "mainImage", url);
       } else {
@@ -350,6 +354,7 @@ export default function CreatePackage() {
       ...formData,
       ...images,
       slug,
+      photoAssetIds: assetIdsRef.current,
     };
     try {
       const res = await fetch("/api/packages", {

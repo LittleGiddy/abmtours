@@ -47,11 +47,11 @@ export default function AdminPackages() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Manage Safari Packages</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">Manage Safari Packages</h1>
           <Link
             href="/admin/packages/create"
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 text-center"
           >
             Create New Package
           </Link>

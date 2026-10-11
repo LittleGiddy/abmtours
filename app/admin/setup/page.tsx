@@ -44,7 +44,7 @@ export default function AdminSetupPage() {
 
       if (response.ok) {
         setMessage({ type: 'success', text: 'Admin created successfully! Redirecting to login...' });
-        setTimeout(() => router.push('/admin/login'), 2000);
+        setTimeout(() => router.push('/admin-login'), 2000);
       } else {
         setMessage({ type: 'error', text: data.message || 'Registration failed' });
       }
@@ -59,7 +59,7 @@ export default function AdminSetupPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 py-12 px-4">
       <div className="max-w-md mx-auto">
         {/* Back Button */}
-        <Link href="/admin/dashboard" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
+        <Link href="/admin/Dashboard" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
           <FaArrowLeft className="text-sm" />
           <span>Back to Dashboard</span>
         </Link>

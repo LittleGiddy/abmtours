@@ -5,12 +5,27 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, secretKey } = await request.json();
     
     if (!email || !password) {
       return NextResponse.json(
         { success: false, message: 'Email and password are required' },
         { status: 400 }
+      );
+    }
+
+    const expectedSecret = process.env.ADMIN_SECRET_KEY;
+    if (!expectedSecret) {
+      return NextResponse.json(
+        { success: false, message: 'Admin setup is not configured' },
+        { status: 503 }
+      );
+    }
+
+    if (!secretKey || secretKey !== expectedSecret) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid secret key' },
+        { status: 403 }
       );
     }
     
@@ -34,12 +49,12 @@ export async function POST(request: Request) {
     const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
     
-    // Check if admin already exists
-    const existingAdmin = await db.collection('admins').findOne({ email });
-    if (existingAdmin) {
+    // Bootstrap only: once an admin exists this endpoint is permanently closed
+    const adminCount = await db.collection('admins').countDocuments();
+    if (adminCount > 0) {
       return NextResponse.json(
         { success: false, message: 'Admin already exists' },
-        { status: 400 }
+        { status: 403 }
       );
     }
     

@@ -1,9 +1,13 @@
 // app/api/upload/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
+import { uploadImage } from '@/lib/cloudinary';
+import { requireAdmin } from '@/lib/adminAuth';
 
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -21,13 +25,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only image files are allowed' }, { status: 400 });
     }
 
-    // Upload to Vercel Blob
-    const blob = await put(file.name, file, {
-      access: 'public',
-      addRandomSuffix: true,
-    });
+    const asset = await uploadImage(file, 'abmtours/packages');
 
-    return NextResponse.json({ url: blob.url });
+    return NextResponse.json({
+      url: asset.url,
+      publicId: asset.publicId,
+      width: asset.width,
+      height: asset.height,
+    });
   } catch (error) {
     console.error('Upload error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Upload failed';

@@ -10,7 +10,7 @@ interface AdminSetupFormProps {
   compact?: boolean;
 }
 
-export default function AdminSetupForm({ onSuccess, redirectTo = '/admin/login', compact = false }: AdminSetupFormProps) {
+export default function AdminSetupForm({ onSuccess, redirectTo = '/admin-login', compact = false }: AdminSetupFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

@@ -2,10 +2,14 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
+import { requireAdmin } from '@/lib/adminAuth';
 
 // GET: Fetch all messages
 export async function GET() {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
        const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
     const messages = await db.collection('messages').find().toArray();

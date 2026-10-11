@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
+import { requireAdmin } from '@/lib/adminAuth';
 import { ObjectId } from 'mongodb';
 
 // Define proper types
@@ -120,6 +121,9 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     
@@ -161,6 +165,9 @@ export async function DELETE(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const body = await request.json();
     const { id, ...updateData } = body;
     

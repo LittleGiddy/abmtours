@@ -1,6 +1,7 @@
 // app/api/packages/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { requireAdmin } from '@/lib/adminAuth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,6 +36,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const client = await clientPromise();
     const db = client.db('abmtours');
     const body = await request.json();

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { removeStoredAsset } from '@/lib/media';
+import { requireAdmin } from '@/lib/adminAuth';
 import { ObjectId } from 'mongodb';
-import { del } from '@vercel/blob';
 
 // Define the shape of updatable fields
 type UpdateData = {
@@ -16,17 +17,20 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const { id } = await params;
     const client = await clientPromise();
     const db = client.db('abmtours');
     const collection = db.collection('gallery');
 
     const image = await collection.findOne({ _id: new ObjectId(id) });
-    if (image?.url) {
+    if (image) {
       try {
-        await del(image.url);
-      } catch (blobError) {
-        console.warn('Failed to delete blob:', blobError);
+        await removeStoredAsset({ url: image.url, publicId: image.publicId });
+      } catch (assetError) {
+        console.warn('Failed to delete image asset:', assetError);
       }
     }
 
@@ -43,6 +47,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const { id } = await params;
     const body = await request.json();
     const { alt, caption, category, order } = body as UpdateData;

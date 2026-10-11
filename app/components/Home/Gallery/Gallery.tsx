@@ -1,101 +1,247 @@
-// components/Gallery.tsx
+// components/Home/Gallery/Gallery.tsx
 "use client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useState, useEffect, useMemo } from "react";
 
-const galleryImages = [
-  { id: 1, src: "/gallery/safari1.jpg", alt: "Wildlife Safari", category: "safari" },
-  { id: 2, src: "/gallery/beach1.jpg", alt: "Zanzibar Beach", category: "beach" },
-  { id: 3, src: "/gallery/kili1.jpg", alt: "Mount Kilimanjaro", category: "mountain" },
-  { id: 4, src: "/gallery/culture1.jpg", alt: "Maasai Culture", category: "culture" },
-  { id: 5, src: "/gallery/safari2.jpg", alt: "Serengeti Sunset", category: "safari" },
-  { id: 6, src: "/gallery/beach2.jpg", alt: "Pristine Waters", category: "beach" },
-  { id: 7, src: "/gallery/kili2.jpg", alt: "Kilimanjaro Trek", category: "mountain" },
-  { id: 8, src: "/gallery/culture2.jpg", alt: "Traditional Dance", category: "culture" },
-];
+interface GalleryImage {
+  _id: string;
+  url: string;
+  alt: string;
+  caption: string;
+  category: string;
+  order: number;
+}
+
+const categoryIcons: Record<string, string> = {
+  safari: "🦁",
+  beach: "🏖️",
+  mountain: "⛰️",
+  culture: "🎭",
+};
 
 const Gallery = () => {
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [activeTab, setActiveTab] = useState("all");
+  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/gallery")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch gallery");
+        return res.json();
+      })
+      .then((data) => {
+        setImages(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
+  }, []);
+
+  const categories = useMemo(() => {
+    const cats = new Set(images.map((img) => img.category).filter(Boolean));
+    return Array.from(cats);
+  }, [images]);
+
+  const filteredImages = useMemo(() => {
+    if (activeTab === "all") return images;
+    return images.filter((img) => img.category === activeTab);
+  }, [images, activeTab]);
+
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-100 to-white">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-gray-100 to-white">
       <div className="container mx-auto px-4">
-        {/* Header with animation */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-10 md:mb-14"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-blue-950 mb-4">Tanzania Through Our Lens</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore breathtaking moments from our adventures across Tanzania&apos;s most iconic landscapes.
+          <h2 className="text-3xl md:text-5xl font-bold text-blue-950 mb-4">
+            Tanzania Through Our Lens
+          </h2>
+          <div className="w-24 h-1 bg-amber-500 mx-auto mb-4 rounded-full" />
+          <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+            Explore breathtaking moments from our adventures across
+            Tanzania&apos;s most iconic landscapes.
           </p>
         </motion.div>
 
-        {/* Interactive Filter Buttons */}
-        <motion.div 
-          className="flex flex-wrap justify-center gap-4 mb-12"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ staggerChildren: 0.1 }}
-        >
-          {['all', 'safari', 'beach', 'mountain', 'culture'].map((category) => (
-            <motion.button
-              key={category}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-6 py-2 rounded-full bg-white shadow-md text-blue-950 capitalize transition-all"
-            >
-              {category}
-            </motion.button>
-          ))}
-        </motion.div>
-
-        {/* Masonry Grid Gallery */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-          {galleryImages.map((image) => (
-            <motion.div
-              key={image.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-              transition={{ duration: 0.6 }}
-              whileHover={{ scale: 1.02 }}
-              className="break-inside-avoid relative group overflow-hidden rounded-xl shadow-lg"
-            >
-              <Image
-                src={image.src}
-                alt={image.alt}
-                width={600}
-                height={400}
-                className="w-full h-auto transition-transform duration-500 group-hover:scale-110"
+        {loading ? (
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="break-inside-avoid rounded-xl bg-gray-200 animate-pulse"
+                style={{ height: 220 + (i % 3) * 60 }}
               />
-              {/* Overlay Effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                  <h3 className="text-white text-xl font-bold">{image.alt}</h3>
-                  <span className="inline-block mt-1 px-3 py-1 text-xs font-semibold bg-blue-600 text-white rounded-full">
-                    {image.category}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : error ? (
+          <p className="text-center text-red-500 py-12">
+            Could not load gallery. Please try again later.
+          </p>
+        ) : images.length === 0 ? (
+          <p className="text-center text-gray-500 py-12">
+            No gallery images yet. Check back soon!
+          </p>
+        ) : (
+          <>
+            {/* Category filters */}
+            {categories.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className="flex flex-wrap justify-center gap-2 md:gap-4 mb-10 md:mb-12"
+              >
+                {["all", ...categories].map((category) => (
+                  <motion.button
+                    key={category}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setActiveTab(category)}
+                    className={`px-5 md:px-6 py-2 rounded-full text-sm capitalize transition-all ${
+                      activeTab === category
+                        ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg font-medium"
+                        : "bg-white shadow-md text-blue-950 hover:bg-amber-50"
+                    }`}
+                  >
+                    {categoryIcons[category] ? `${categoryIcons[category]} ` : ""}
+                    {category}
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
 
-        {/* CTA with Animation */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          viewport={{ once: true }}
-          className="text-center mt-16"
-        >
-          <button className="px-8 py-3 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl">
-            View More Memories
-          </button>
-        </motion.div>
+            {/* Masonry grid */}
+            <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6"
+            >
+              {filteredImages.map((image) => (
+                <motion.div
+                  key={image._id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "0px 0px -100px 0px" }}
+                  transition={{ duration: 0.6 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => setSelectedImage(image)}
+                  className="break-inside-avoid relative group overflow-hidden rounded-xl shadow-lg cursor-pointer"
+                >
+                  <div className="relative w-full aspect-[4/3] bg-gray-200">
+                    <Image
+                      src={image.url}
+                      alt={image.alt}
+                      fill
+                      className="w-full h-auto transition-transform duration-500 group-hover:scale-110"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  </div>
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-5">
+                    <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300 w-full">
+                      <h3 className="text-white text-lg md:text-xl font-bold drop-shadow-md">
+                        {image.alt}
+                      </h3>
+                      {image.caption && (
+                        <p className="text-white/80 text-xs md:text-sm mt-1 line-clamp-2">
+                          {image.caption}
+                        </p>
+                      )}
+                      {image.category && (
+                        <span className="inline-block mt-2 px-3 py-1 text-xs font-semibold bg-amber-600 text-white rounded-full">
+                          {categoryIcons[image.category] || ""}{" "}
+                          {image.category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+            </AnimatePresence>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-center mt-12 md:mt-16"
+            >
+              <a
+                href="/Gallery"
+                className="inline-block px-8 py-3 bg-amber-600 text-white rounded-full font-medium hover:bg-amber-700 transition-colors shadow-lg hover:shadow-xl"
+              >
+                View Full Gallery
+              </a>
+            </motion.div>
+          </>
+        )}
       </div>
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 cursor-pointer"
+          >
+            <motion.div
+              initial={{ scale: 0.85 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.85 }}
+              className="relative max-w-5xl w-full bg-white rounded-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative aspect-video bg-gray-100">
+                <Image
+                  src={selectedImage.url}
+                  alt={selectedImage.alt}
+                  fill
+                  className="object-contain"
+                  sizes="90vw"
+                />
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg md:text-2xl font-bold">{selectedImage.alt}</h3>
+                {selectedImage.caption && (
+                  <p className="text-gray-600 mt-2 italic text-sm md:text-base">
+                    {selectedImage.caption}
+                  </p>
+                )}
+                {selectedImage.category && (
+                  <span className="inline-block mt-3 px-3 py-1 text-sm bg-amber-100 text-amber-800 rounded-full">
+                    {categoryIcons[selectedImage.category] || ""}{" "}
+                    {selectedImage.category}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };

@@ -2,12 +2,16 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { getClientPromise } from '@/lib/mongodb'; // ✅ named import
+import { requireAdmin } from '@/lib/adminAuth';
 import type { NextRequest } from 'next/server';
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
 
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const client = await getClientPromise(); // ✅ call it as a function
     const db = client.db('abmtours');
 

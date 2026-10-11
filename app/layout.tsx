@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./components/ClientLayout";
 import TidioScript from "./components/TidioScript/TidioScript";
+import ImageErrorFallback from "./components/ImageErrorFallback";
 
 
 const font = Poppins({
@@ -26,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" style={{ colorScheme: "light" }}>
       <body className={`${font.className} antialiased flex flex-col min-h-screen bg-white text-black`}>
+        <ImageErrorFallback />
         <TidioScript />
         
         <ClientLayout>{children}</ClientLayout>

@@ -1,9 +1,13 @@
-import { put } from '@vercel/blob';
+import { uploadImage } from '@/lib/cloudinary';
+import { requireAdmin } from '@/lib/adminAuth';
 import clientPromise from '@/lib/mongodb';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const formData = await request.formData();
     const file = formData.get('image') as File;
     const alt = (formData.get('alt') as string) || 'Destination image';
@@ -12,11 +16,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No image file' }, { status: 400 });
     }
 
-    // 1. Upload to Vercel Blob
-    const blob = await put(file.name, file, {
-      access: 'public',
-      addRandomSuffix: true,
-    });
+    // 1. Upload to Cloudinary
+    const asset = await uploadImage(file, 'abmtours/destinations');
 
     // 2. Use native MongoDB driver (no Mongoose)
     const client = await clientPromise();   // ✅ call the function
@@ -24,8 +25,9 @@ export async function POST(request: Request) {
     const collection = db.collection('destinationimages');
 
     const newImage = {
-      url: blob.url,
-      filename: blob.pathname,
+      url: asset.url,
+      publicId: asset.publicId,
+      filename: file.name,
       alt,
       createdAt: new Date(),
       order: 0,

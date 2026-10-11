@@ -83,7 +83,8 @@ const Reviews = () => {
   };
 
   const openGoogleReviews = () => {
-    window.open('https://search.google.com/local/writereview?placeid=${placeId}', '_blank');
+    const placeId = process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID;
+    window.open(`https://search.google.com/local/writereview?placeid=${placeId}`, '_blank');
   };
 
   if (loading) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
+import { uploadImage } from '@/lib/cloudinary';
+import { requireAdmin } from '@/lib/adminAuth';
 import clientPromise from '@/lib/mongodb';
 
 export async function GET() {
@@ -20,6 +21,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const formData = await request.formData();
     const file = formData.get('image') as File;
     const alt = (formData.get('alt') as string) || 'Gallery image';
@@ -34,10 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Image must be less than 2MB' }, { status: 400 });
     }
 
-    const blob = await put(file.name, file, {
-      access: 'public',
-      addRandomSuffix: true,
-    });
+    const asset = await uploadImage(file, 'abmtours/gallery');
 
     const client = await clientPromise();
     const db = client.db('abmtours');
@@ -47,8 +48,9 @@ export async function POST(request: NextRequest) {
     const newOrder = (maxOrderDoc?.order ?? 0) + 1;
 
     const newImage = {
-      url: blob.url,
-      filename: blob.pathname,
+      url: asset.url,
+      publicId: asset.publicId,
+      filename: file.name,
       alt,
       caption,      // ✅ store caption
       category,

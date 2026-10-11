@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
 serverExternalPackages: ["pdf-parse"],
 
   images: {
+    loaderFile: "./lib/cloudinary-loader.ts",
+
     domains: [
       "images.unsplash.com",
       "upload.wikimedia.org",
@@ -15,7 +17,12 @@ serverExternalPackages: ["pdf-parse"],
         protocol: "https",
         hostname: "randomuser.me",
       },
-      // Add this pattern for Vercel Blob images
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+      // Retained so images uploaded before the Cloudinary migration still render
       {
         protocol: "https",
         hostname: "*.public.blob.vercel-storage.com",

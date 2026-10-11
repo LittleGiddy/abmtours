@@ -1,7 +1,9 @@
 // app/api/packages/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { requireAdmin } from '@/lib/adminAuth';
 import { ObjectId } from 'mongodb';
+import { destroyAsset } from '@/lib/cloudinary';
 
 export async function GET(
   request: NextRequest,
@@ -27,6 +29,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const { id } = await params;
     const client = await clientPromise();
     const db = client.db('abmtours');
@@ -58,13 +63,31 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const { id } = await params;
     const client = await clientPromise();
     const db = client.db('abmtours');
-    const result = await db.collection('packages').deleteOne({ _id: new ObjectId(id) });
-    if (result.deletedCount === 0) {
+
+    const pkg = await db.collection('packages').findOne({ _id: new ObjectId(id) });
+    if (!pkg) {
       return NextResponse.json({ error: 'Package not found' }, { status: 404 });
     }
+
+    // Best-effort cleanup of Cloudinary assets referenced by this package.
+    const assetIds: string[] = Array.isArray(pkg.photoAssetIds)
+      ? pkg.photoAssetIds.filter((pid): pid is string => typeof pid === 'string' && pid.length > 0)
+      : [];
+    for (const publicId of assetIds) {
+      try {
+        await destroyAsset(publicId);
+      } catch (assetError) {
+        console.warn(`Failed to delete Cloudinary asset ${publicId}:`, assetError);
+      }
+    }
+
+    await db.collection('packages').deleteOne({ _id: new ObjectId(id) });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('DELETE /api/packages/[id] error:', error);

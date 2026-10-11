@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractText, getDocumentProxy } from 'unpdf';
+import { requireAdmin } from '@/lib/adminAuth';
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
+
   const groqApiKey = process.env.GROQ_API_KEY;
   if (!groqApiKey) {
     return NextResponse.json({ error: 'Missing GROQ_API_KEY' }, { status: 500 });

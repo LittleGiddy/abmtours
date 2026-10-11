@@ -3,13 +3,12 @@
 
 import React from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { Disclosure } from "@headlessui/react";
 import { RxCross2 } from "react-icons/rx";
 import {
   MdOutlineLogout,
-  MdOutlineLocationOn,
   MdOutlineMapsHomeWork,
   MdOutlineTravelExplore,
   MdOutlineBookmarkBorder,
@@ -21,66 +20,83 @@ import { BiMessageSquareDots } from "react-icons/bi";
 import { IoMdStarOutline } from "react-icons/io";
 import { MdOutlineFileUpload } from "react-icons/md";
 
-
+const navItems = [
+  { icon: <MdSpaceDashboard />, label: "Dashboard", path: "/admin/Dashboard" },
+  { icon: <MdOutlineBookmarkBorder />, label: "Bookings", path: "/admin/Bookings" },
+  { icon: <IoMdStarOutline />, label: "Reviews", path: "/admin/reviews" },
+  { icon: <MdOutlinePhotoLibrary />, label: "Gallery", path: "/admin/gallery" },
+  { icon: <BiMessageSquareDots />, label: "Messages", path: "/admin/Messages" },
+  { icon: <MdOutlineTravelExplore />, label: "Tours and Safaris", path: "/admin/packages" },
+  { icon: <MdOutlineFileUpload />, label: "Import PDF", path: "/admin/import-pdf" },
+  { icon: <MdOutlineMapsHomeWork />, label: "Destinations", path: "/admin/destinations" },
+  { icon: <MdOutlineAdminPanelSettings />, label: "Setup", path: "/admin/setup" },
+];
 
 function SIdeNavbar() {
+  const pathname = usePathname();
+
   return (
     <Disclosure as="nav">
-      {({ open }) => (
+      {({ open, close }) => (
         <div>
-          {/* Hamburger Button */}
-          <Disclosure.Button className="absolute bg-amber-100 top-4 right-4 z-30 inline-flex items-center peer justify-center rounded-md p-2 text-gray-800 hover:bg-gray-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white group">
+          {/* Hamburger Button – only visible while the sidebar is pinned closed (< lg) */}
+          <Disclosure.Button className="absolute top-4 right-4 z-40 lg:hidden inline-flex items-center justify-center rounded-md p-2.5 bg-gray-900 text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white shadow-lg">
             {open ? (
-              <RxCross2 className="block md:hidden h-6 w-6" aria-hidden="true" />
+              <RxCross2 className="h-6 w-6" aria-hidden="true" />
             ) : (
-              <GiHamburgerMenu className="block md:hidden h-6 w-6" aria-hidden="true" />
+              <GiHamburgerMenu className="h-6 w-6" aria-hidden="true" />
             )}
           </Disclosure.Button>
 
+          {/* Overlay for mobile drawer */}
+          {open && (
+            <div
+              className="fixed inset-0 bg-black/40 z-30 lg:hidden"
+              onClick={() => close()}
+            />
+          )}
+
           {/* Sidebar */}
           <div
-            className={`p-6 w-1/2 h-screen bg-white z-20 fixed top-0 transition-all duration-300 ease-in-out ${
-              open ? "left-0" : "-left-96"
-            } lg:left-0 lg:w-60`}
+            className={`fixed inset-y-0 left-0 z-40 w-[75%] max-w-xs lg:w-60 bg-white shadow-xl transition-transform duration-300 ease-in-out transform ${
+              open ? "translate-x-0" : "-translate-x-full"
+            } lg:translate-x-0 overflow-y-auto`}
           >
-            <div className="flex flex-col justify-start items-center">
+            <div className="flex flex-col min-h-full">
               {/* Logo + Title */}
-              <div className="flex flex-col items-center gap-2 mb-4 border-b border-gray-100 pb-4 w-full">
+              <div className="flex flex-col items-center gap-2 px-4 py-6 border-b border-gray-100 w-full">
                 <Image
                   src="/ABMLOGO.png"
                   alt="Logo"
-                  width={48}
-                  height={48}
+                  width={52}
+                  height={52}
                   className="mx-auto"
                   priority
                 />
-                <h1 className="text-base cursor-pointer font-bold text-blue-900">
+                <h1 className="text-lg font-bold text-blue-900 text-center">
                   Admin Panel
                 </h1>
               </div>
 
               {/* Navigation Items */}
-              <div className="my-4 border-b border-gray-100 pb-4 w-full">
-                <MenuItem icon={<MdSpaceDashboard />} label="Dashboard" path="/admin/Dashboard" />
-                <MenuItem icon={<MdOutlineBookmarkBorder />} label="Bookings" path="/admin/Bookings" />
-                <MenuItem icon={<IoMdStarOutline />} label="Reviews" path="/admin/reviews" />
-                <MenuItem icon={<MdOutlinePhotoLibrary />} label="Gallery" path="/admin/gallery" />
-                <MenuItem icon={<BiMessageSquareDots />} label="Messages" path="/admin/Messages" />
-                <MenuItem icon={<MdOutlineMapsHomeWork />} label="Desired Place" path="/admin/desired-place" />
-                {/* Tours and Safaris now points to the package management page */}
-                <MenuItem icon={<MdOutlineTravelExplore />} label="Tours and Safaris" path="/admin/packages" />
-                <MenuItem icon={<MdOutlineFileUpload />} label="Import PDF" path="/admin/import-pdf" />
-                <MenuItem icon={<MdOutlineLocationOn />} label="Destinations" path="/admin/destinations" />
-                <MenuItem icon={<MdOutlineAdminPanelSettings />} label="Setup" path="/admin/setup" />
+              <div className="flex-1 px-3 py-4">
+                {navItems.map((item) => (
+                  <MenuItem
+                    key={`${item.label}-${item.path}`}
+                    icon={item.icon}
+                    label={item.label}
+                    path={item.path}
+                    active={pathname === item.path}
+                  />
+                ))}
               </div>
 
               {/* Logout */}
-              <div className="my-4 w-full">
+              <div className="px-3 py-4 border-t border-gray-100">
                 <MenuItem
                   icon={<MdOutlineLogout />}
                   label="Logout"
                   path="/admin-login"
-                  extraClasses="border border-gray-200"
                 />
               </div>
             </div>
@@ -91,8 +107,8 @@ function SIdeNavbar() {
   );
 }
 
-// Reusable menu item component (no TypeScript annotation)
-const MenuItem = ({ icon, label, path, extraClasses = "" }) => {
+// Reusable menu item component
+const MenuItem = ({ icon, label, path, active = false }) => {
   const router = useRouter();
 
   const handleClick = () => {
@@ -102,10 +118,26 @@ const MenuItem = ({ icon, label, path, extraClasses = "" }) => {
   return (
     <div
       onClick={handleClick}
-      className={`flex mb-2 justify-start items-center gap-4 pl-5 hover:bg-gray-900 p-2 rounded-md group cursor-pointer hover:shadow-lg m-auto ${extraClasses}`}
+      className={`flex mb-1.5 justify-start items-center gap-4 pl-5 p-2.5 rounded-md group cursor-pointer hover:shadow-sm transition-colors ${
+        active
+          ? "bg-amber-600 text-white shadow-sm"
+          : "hover:bg-gray-900 hover:text-white"
+      }`}
     >
-      <div className="text-2xl text-gray-600 group-hover:text-white">{icon}</div>
-      <h3 className="text-base text-gray-800 group-hover:text-white font-semibold">
+      <div
+        className={`text-2xl ${
+          active ? "text-white" : "text-gray-600 group-hover:text-white"
+        }`}
+      >
+        {icon}
+      </div>
+      <h3
+        className={`text-sm font-semibold ${
+          active
+            ? "text-white"
+            : "text-gray-800 group-hover:text-white"
+        }`}
+      >
         {label}
       </h3>
     </div>

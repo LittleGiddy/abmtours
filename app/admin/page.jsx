@@ -1,12 +1,7 @@
-import React from 'react'
-import SIdeNavbar from './SIdeNavbar/SIdeNavbar'
+import { redirect } from 'next/navigation';
 
-const page = () => {
-  return (
-    <div>
-      <SIdeNavbar />
-    </div>
-  )
-}
+const AdminIndex = () => {
+  redirect('/admin/Dashboard');
+};
 
-export default page
+export default AdminIndex;

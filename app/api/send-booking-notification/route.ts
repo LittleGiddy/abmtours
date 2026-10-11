@@ -1,9 +1,13 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { requireAdmin } from '@/lib/adminAuth';
 
 export async function POST(request: Request) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const contentType = request.headers.get('content-type');
     if (!contentType?.includes('application/json')) {
       return NextResponse.json(

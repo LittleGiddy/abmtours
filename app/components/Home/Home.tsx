@@ -1,6 +1,7 @@
 import React from 'react';
 import Hero from './Hero/Hero';
 import Destinations from './Destinations/Destinations'
+import Gallery from './Gallery/Gallery';
 import WhyUs from './WhyUs/WhyUs';
 import Review from './Review/Review';
 import News from './News/News';
@@ -21,6 +22,7 @@ const Home = () => {
       <WhyUs />
       
       <Destinations />
+      <Gallery />
       <Review />
       <News />
       <FAQAccordion />

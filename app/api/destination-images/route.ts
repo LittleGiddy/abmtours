@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
+import { removeStoredAsset } from '@/lib/media';
+import { requireAdmin } from '@/lib/adminAuth';
 
 export async function GET() {
   try {
@@ -17,6 +19,9 @@ export async function GET() {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
@@ -25,6 +30,15 @@ export async function DELETE(req: NextRequest) {
     const db = client.db('abmtours');
     const collection = db.collection('destinationimages');
     const { ObjectId } = await import('mongodb');
+
+    const image = await collection.findOne({ _id: new ObjectId(id) });
+    if (image) {
+      try {
+        await removeStoredAsset({ url: image.url, publicId: image.publicId });
+      } catch (assetError) {
+        console.warn('Failed to delete image asset:', assetError);
+      }
+    }
 
     await collection.deleteOne({ _id: new ObjectId(id) });
     return NextResponse.json({ success: true });
