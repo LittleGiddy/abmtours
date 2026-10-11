@@ -17,6 +17,74 @@ export async function GET() {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
+    const contentType = request.headers.get('content-type') || '';
+
+    let url: string;
+    let publicId: string;
+    let filename: string;
+    let alt: string;
+
+    if (contentType.includes('application/json')) {
+      const body = (await request.json()) as {
+        url?: string;
+        publicId?: string;
+        filename?: string;
+        alt?: string;
+      };
+      if (!body.url) {
+        return NextResponse.json({ error: 'No image url' }, { status: 400 });
+      }
+      url = body.url;
+      publicId = body.publicId || '';
+      filename = body.filename || '';
+      alt = body.alt || 'Destination image';
+    } else {
+      const { uploadImage } = await import('@/lib/cloudinary');
+      const formData = await request.formData();
+      const file = formData.get('image') as File;
+      if (!file) {
+        return NextResponse.json({ error: 'No image file' }, { status: 400 });
+      }
+      alt = (formData.get('alt') as string) || 'Destination image';
+      const asset = await uploadImage(file, 'abmtours/destinations');
+      url = asset.url;
+      publicId = asset.publicId;
+      filename = file.name;
+    }
+
+    const client = await clientPromise();
+    const db = client.db('abmtours');
+    const collection = db.collection('destinationimages');
+
+    const maxOrderDoc = await collection.findOne({}, { sort: { order: -1 } });
+    const newOrder = (maxOrderDoc?.order ?? 0) + 1;
+
+    const newImage = {
+      url,
+      publicId,
+      filename,
+      alt,
+      order: newOrder,
+      createdAt: new Date(),
+    };
+
+    const result = await collection.insertOne(newImage);
+
+    return NextResponse.json(
+      { success: true, image: { _id: result.insertedId, ...newImage } },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Upload error:', error);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const denied = await requireAdmin();

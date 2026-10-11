@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
+import { DEFAULT_SECTIONS } from "@/lib/siteContent";
 
 interface GalleryImage {
   _id: string;
@@ -26,6 +27,7 @@ const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [content, setContent] = useState(DEFAULT_SECTIONS.gallery);
 
   useEffect(() => {
     fetch("/api/gallery")
@@ -41,6 +43,17 @@ const Gallery = () => {
         setError(true);
         setLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/site-content?key=gallery")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && typeof data.heading === "string" && data.heading.trim()) {
+          setContent({ heading: data.heading, tagline: data.tagline || "" });
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const categories = useMemo(() => {
@@ -65,12 +78,11 @@ const Gallery = () => {
           className="text-center mb-10 md:mb-14"
         >
           <h2 className="text-3xl md:text-5xl font-bold text-blue-950 mb-4">
-            Tanzania Through Our Lens
+            {content.heading}
           </h2>
           <div className="w-24 h-1 bg-amber-500 mx-auto mb-4 rounded-full" />
           <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore breathtaking moments from our adventures across
-            Tanzania&apos;s most iconic landscapes.
+            {content.tagline}
           </p>
         </motion.div>
 

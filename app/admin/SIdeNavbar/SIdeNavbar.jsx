@@ -15,6 +15,7 @@ import {
   MdSpaceDashboard,
   MdOutlinePhotoLibrary,
   MdOutlineAdminPanelSettings,
+  MdOutlineArticle,
 } from "react-icons/md";
 import { BiMessageSquareDots } from "react-icons/bi";
 import { IoMdStarOutline } from "react-icons/io";
@@ -29,6 +30,7 @@ const navItems = [
   { icon: <MdOutlineTravelExplore />, label: "Tours and Safaris", path: "/admin/packages" },
   { icon: <MdOutlineFileUpload />, label: "Import PDF", path: "/admin/import-pdf" },
   { icon: <MdOutlineMapsHomeWork />, label: "Destinations", path: "/admin/destinations" },
+  { icon: <MdOutlineArticle />, label: "Site Content", path: "/admin/content" },
   { icon: <MdOutlineAdminPanelSettings />, label: "Setup", path: "/admin/setup" },
 ];
 

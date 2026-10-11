@@ -1,11 +1,25 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import SectionHeading from '../../Helper/SectionHeading';
 import DestinationSlider from './DestinationSlider';
 import { motion } from 'framer-motion';
+import { DEFAULT_SECTIONS } from '@/lib/siteContent';
 
 const Destinations = () => {
+  const [content, setContent] = useState(DEFAULT_SECTIONS.destinations);
+
+  useEffect(() => {
+    fetch('/api/site-content?key=destinations')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && typeof data.heading === 'string' && data.heading.trim()) {
+          setContent({ heading: data.heading, tagline: data.tagline || '' });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="pt-20 pb-20">
       {/* Animated Section Heading */}
@@ -15,10 +29,7 @@ const Destinations = () => {
         transition={{ duration: 0.7, ease: 'easeOut' }}
         viewport={{ once: true, amount: 0.5 }}
       >
-        <SectionHeading
-          heading="A Visual Journey Through the Heart of Our Tours and Safaris"
-          tagline="Explore the wild through our lens, moments from unforgettable tours and safaris."
-        />
+        <SectionHeading heading={content.heading} tagline={content.tagline} />
       </motion.div>
 
       {/* Slider with Animation */}

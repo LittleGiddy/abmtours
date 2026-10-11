@@ -1,22 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
-import Cropper from "react-easy-crop";
-import type { Area } from "react-easy-crop";
-import { getCroppedImg } from "@/lib/cropImage";
-import { 
-  Upload, 
-  Trash2, 
-  ChevronUp, 
-  ChevronDown, 
-  Edit2, 
-  Check, 
-  X, 
-  Search, 
+import {
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  Edit2,
+  Check,
+  X,
+  Search,
   Image as ImageIcon,
   Loader2,
   AlertCircle,
-  Plus
+  Plus,
+  Eye,
 } from "lucide-react";
+import ImageUploader, { type UploadedImage } from "@/app/components/admin/ImageUploader";
 
 interface ImageItem {
   _id: string;
@@ -27,14 +25,13 @@ interface ImageItem {
   createdAt: string;
 }
 
-// Simple Toast component
 const Toast = ({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
   }, [onClose]);
   return (
-    <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-right-5">
+    <div className="fixed bottom-4 right-4 z-50">
       <div className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
         type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
       }`}>
@@ -45,7 +42,6 @@ const Toast = ({ message, type, onClose }: { message: string; type: "success" | 
   );
 };
 
-// Confirmation modal – fixed the `any` type
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -74,13 +70,11 @@ export default function ManageDestinations() {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [filteredImages, setFilteredImages] = useState<ImageItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [uploaded, setUploaded] = useState<UploadedImage | null>(null);
   const [altText, setAltText] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [preview, setPreview] = useState<ImageItem | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [editingAlt, setEditingAlt] = useState<string | null>(null);
@@ -96,7 +90,9 @@ export default function ManageDestinations() {
     if (!searchTerm.trim()) {
       setFilteredImages(images);
     } else {
-      setFilteredImages(images.filter(img => img.alt.toLowerCase().includes(searchTerm.toLowerCase())));
+      setFilteredImages(images.filter((img) =>
+        img.alt.toLowerCase().includes(searchTerm.toLowerCase())
+      ));
     }
   }, [searchTerm, images]);
 
@@ -114,43 +110,33 @@ export default function ManageDestinations() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setImageUrl(URL.createObjectURL(file));
-      setCrop({ x: 0, y: 0 });
-      setZoom(1);
-    }
+  const resetAdd = () => {
+    setUploaded(null);
+    setAltText("");
+    setShowAdd(false);
   };
 
-  const onCropComplete = (_croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  };
-
-  const getCroppedImage = async () => {
-    if (!selectedFile || !croppedAreaPixels) return;
-    setUploading(true);
+  const addImage = async () => {
+    if (!uploaded) return;
+    setCreating(true);
     try {
-      const croppedImageBlob = await getCroppedImg(imageUrl!, croppedAreaPixels);
-      const croppedFile = new File([croppedImageBlob], selectedFile.name, { type: croppedImageBlob.type });
-      const formData = new FormData();
-      formData.append("image", croppedFile);
-      formData.append("alt", altText || "Destination image");
-      const res = await fetch("/api/destination-images/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        await fetchImages();
-        setSelectedFile(null);
-        setImageUrl(null);
-        setAltText("");
-        setToast({ message: "Image uploaded successfully", type: "success" });
-      } else {
-        throw new Error();
-      }
+      const res = await fetch("/api/destination-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: uploaded.url,
+          publicId: uploaded.publicId,
+          alt: altText || "Destination image",
+        }),
+      });
+      if (!res.ok) throw new Error();
+      await fetchImages();
+      resetAdd();
+      setToast({ message: "Image added", type: "success" });
     } catch {
       setToast({ message: "Upload failed", type: "error" });
     } finally {
-      setUploading(false);
+      setCreating(false);
     }
   };
 
@@ -181,12 +167,11 @@ export default function ManageDestinations() {
   };
 
   const updateOrder = async (id: string, direction: "up" | "down") => {
-    const currentIndex = images.findIndex(i => i._id === id);
+    const currentIndex = images.findIndex((i) => i._id === id);
     if (direction === "up" && currentIndex === 0) return;
     if (direction === "down" && currentIndex === images.length - 1) return;
-    const newOrder = direction === "up" 
-      ? images[currentIndex - 1].order 
-      : images[currentIndex + 1].order;
+    const newOrder =
+      direction === "up" ? images[currentIndex - 1].order : images[currentIndex + 1].order;
     const res = await fetch(`/api/destination-images/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -219,7 +204,7 @@ export default function ManageDestinations() {
 
   const selectAll = () => {
     if (selectedIds.size === filteredImages.length) setSelectedIds(new Set());
-    else setSelectedIds(new Set(filteredImages.map(img => img._id)));
+    else setSelectedIds(new Set(filteredImages.map((img) => img._id)));
   };
 
   if (isLoading) {
@@ -248,53 +233,72 @@ export default function ManageDestinations() {
         message="Are you sure you want to delete this image? This action cannot be undone."
       />
 
+      {preview && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setPreview(null)}>
+          <div className="relative max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setPreview(null)} className="absolute -top-10 right-0 text-white/80 hover:text-white">
+              <X size={26} />
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={preview.url} alt={preview.alt} className="w-full rounded-xl object-contain bg-black max-h-[80vh]" />
+            {preview.alt && <p className="text-white text-center text-sm mt-3">{preview.alt}</p>}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Destination Images</h1>
-        <label className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg cursor-pointer transition flex items-center gap-2 shadow-sm">
-          <Plus size={18} />
-          Upload New
-          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-        </label>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Destination Images</h1>
+          <p className="text-gray-500 text-sm">Powers the &quot;A Visual Journey...&quot; slider on the homepage.</p>
+        </div>
+        <button
+          onClick={() => (showAdd ? resetAdd() : setShowAdd(true))}
+          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition flex items-center justify-center gap-2 shadow-sm"
+        >
+          {showAdd ? <X size={18} /> : <Plus size={18} />}
+          {showAdd ? "Cancel" : "Upload New"}
+        </button>
       </div>
 
-      {/* Upload Crop Section */}
-      {imageUrl && (
-        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4 mb-6">
-          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2"><ImageIcon size={20} /> Crop & Upload</h2>
-          <div className="relative h-64 md:h-96 w-full bg-gray-100 rounded-lg overflow-hidden">
-            <Cropper
-              image={imageUrl}
-              crop={crop}
-              zoom={zoom}
+      {showAdd && (
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 mb-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <ImageUploader
+              label="Slider photo"
+              folder="abmtours/destinations"
+              value={uploaded?.url}
+              onChange={setUploaded}
               aspect={3 / 4}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={onCropComplete}
+              aspectOptions={[
+                { label: "3:4", value: 3 / 4 },
+                { label: "9:16", value: 9 / 16 },
+                { label: "1:1", value: 1 },
+                { label: "4:3", value: 4 / 3 },
+              ]}
+              maxSizeMB={5}
+              helperText="Portrait works best for the slider"
             />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 mt-4">
-            <input
-              type="text"
-              placeholder="Alt text (optional)"
-              value={altText}
-              onChange={(e) => setAltText(e.target.value)}
-              className="flex-1 border rounded-lg px-3 py-2"
-            />
-            <button
-              onClick={getCroppedImage}
-              disabled={uploading}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {uploading ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
-              {uploading ? "Uploading..." : "Upload"}
-            </button>
-            <button
-              onClick={() => { setImageUrl(null); setSelectedFile(null); }}
-              className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Alt text (optional)</label>
+                <input
+                  type="text"
+                  value={altText}
+                  onChange={(e) => setAltText(e.target.value)}
+                  placeholder="e.g. Mount Kilimanjaro at sunrise"
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+              </div>
+              <button
+                onClick={addImage}
+                disabled={!uploaded || creating}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {creating ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
+                {creating ? "Saving..." : "Add to Slider"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -313,10 +317,7 @@ export default function ManageDestinations() {
         </div>
         {selectedIds.size > 0 && (
           <div className="flex gap-3">
-            <button
-              onClick={bulkDelete}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-            >
+            <button onClick={bulkDelete} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
               <Trash2 size={18} />
               Delete Selected ({selectedIds.size})
             </button>
@@ -327,7 +328,6 @@ export default function ManageDestinations() {
         )}
       </div>
 
-      {/* Images Grid */}
       {filteredImages.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-xl">
           <ImageIcon className="mx-auto text-gray-400 mb-3" size={48} />
@@ -338,6 +338,7 @@ export default function ManageDestinations() {
           {filteredImages.map((img) => (
             <div key={img._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group transition hover:shadow-md">
               <div className="relative h-48 bg-gray-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
                 <div className="absolute top-2 left-2">
                   <input
@@ -348,18 +349,13 @@ export default function ManageDestinations() {
                   />
                 </div>
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                  <button
-                    onClick={() => updateOrder(img._id, "up")}
-                    className="bg-white/80 rounded-full p-1 hover:bg-white"
-                    title="Move Up"
-                  >
+                  <button onClick={() => setPreview(img)} className="bg-white/90 rounded-full p-1 hover:bg-white" title="Preview">
+                    <Eye size={16} />
+                  </button>
+                  <button onClick={() => updateOrder(img._id, "up")} className="bg-white/90 rounded-full p-1 hover:bg-white" title="Move Up">
                     <ChevronUp size={16} />
                   </button>
-                  <button
-                    onClick={() => updateOrder(img._id, "down")}
-                    className="bg-white/80 rounded-full p-1 hover:bg-white"
-                    title="Move Down"
-                  >
+                  <button onClick={() => updateOrder(img._id, "down")} className="bg-white/90 rounded-full p-1 hover:bg-white" title="Move Down">
                     <ChevronDown size={16} />
                   </button>
                 </div>
@@ -384,10 +380,7 @@ export default function ManageDestinations() {
                     </button>
                   </div>
                 )}
-                <button
-                  onClick={() => setDeleteTarget(img._id)}
-                  className="mt-2 text-red-600 text-sm flex items-center gap-1 hover:underline"
-                >
+                <button onClick={() => setDeleteTarget(img._id)} className="mt-2 text-red-600 text-sm flex items-center gap-1 hover:underline">
                   <Trash2 size={14} /> Delete
                 </button>
               </div>

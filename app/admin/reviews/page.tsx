@@ -249,7 +249,7 @@ const AdminReviewsPage = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
@@ -265,6 +265,7 @@ const AdminReviewsPage = () => {
                   </button>
                 </div>
 
+                <div className="grid md:grid-cols-2 gap-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name *</label>
@@ -337,6 +338,47 @@ const AdminReviewsPage = () => {
                     </button>
                   </div>
                 </form>
+
+                {/* Live preview — mirrors the frontend review card */}
+                <div className="bg-gray-50 rounded-xl p-5 border border-gray-100 self-start">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
+                    Live preview
+                  </p>
+                  <div className="bg-white rounded-xl shadow-sm p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold">
+                        {(formData.name || "A").charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {formData.name || "Customer Name"}
+                        </p>
+                        <div className="flex gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar
+                              key={i}
+                              className={`w-3.5 h-3.5 ${i < formData.rating ? "text-yellow-400" : "text-gray-300"}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 italic">
+                      &ldquo;{formData.text || "The review text will appear here..."}&rdquo;
+                    </p>
+                    <div className="flex items-center justify-between mt-3 text-xs text-gray-400">
+                      <span>
+                        {formData.date ? new Date(formData.date).toLocaleDateString() : ""}
+                      </span>
+                      {formData.verified && (
+                        <span className="text-green-600 flex items-center gap-1">
+                          <FaCheckCircle className="w-3 h-3" /> Verified
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                </div>
               </div>
             </motion.div>
           </motion.div>
