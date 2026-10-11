@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Plus,
   Eye,
+  Replace,
 } from "lucide-react";
 import ImageUploader, { type UploadedImage } from "@/app/components/admin/ImageUploader";
 
@@ -75,6 +76,8 @@ export default function ManageDestinations() {
   const [altText, setAltText] = useState("");
   const [creating, setCreating] = useState(false);
   const [preview, setPreview] = useState<ImageItem | null>(null);
+  const [replaceTarget, setReplaceTarget] = useState<ImageItem | null>(null);
+  const [replacing, setReplacing] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [editingAlt, setEditingAlt] = useState<string | null>(null);
@@ -137,6 +140,25 @@ export default function ManageDestinations() {
       setToast({ message: "Upload failed", type: "error" });
     } finally {
       setCreating(false);
+    }
+  };
+
+  const replaceImage = async (id: string, img: UploadedImage) => {
+    setReplacing(true);
+    try {
+      const res = await fetch(`/api/destination-images/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: img.url, publicId: img.publicId }),
+      });
+      if (!res.ok) throw new Error();
+      await fetchImages();
+      setToast({ message: "Image replaced", type: "success" });
+      setReplaceTarget(null);
+    } catch {
+      setToast({ message: "Replace failed", type: "error" });
+    } finally {
+      setReplacing(false);
     }
   };
 
@@ -242,6 +264,39 @@ export default function ManageDestinations() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={preview.url} alt={preview.alt} className="w-full rounded-xl object-contain bg-black max-h-[80vh]" />
             {preview.alt && <p className="text-white text-center text-sm mt-3">{preview.alt}</p>}
+          </div>
+        </div>
+      )}
+
+      {/* Replace modal */}
+      {replaceTarget && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          onClick={() => !replacing && setReplaceTarget(null)}
+        >
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Replace Image</h3>
+              <button onClick={() => setReplaceTarget(null)} disabled={replacing} className="text-gray-400 hover:text-gray-700">
+                <X size={20} />
+              </button>
+            </div>
+            <ImageUploader
+              label="New photo"
+              folder="abmtours/destinations"
+              value={replaceTarget.url}
+              onChange={(img) => { if (img) replaceImage(replaceTarget._id, img); }}
+              aspect={3 / 4}
+              maxSizeMB={5}
+              previewHeightClass="h-56"
+              showRemove={false}
+              helperText="Crop, zoom & rotate, then upload to replace"
+            />
+            {replacing && (
+              <p className="mt-3 text-sm text-gray-500 flex items-center gap-2">
+                <Loader2 className="animate-spin" size={15} /> Replacing...
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -380,9 +435,14 @@ export default function ManageDestinations() {
                     </button>
                   </div>
                 )}
-                <button onClick={() => setDeleteTarget(img._id)} className="mt-2 text-red-600 text-sm flex items-center gap-1 hover:underline">
-                  <Trash2 size={14} /> Delete
-                </button>
+                <div className="flex items-center gap-3 mt-2">
+                  <button onClick={() => setReplaceTarget(img)} className="text-blue-600 text-sm flex items-center gap-1 hover:underline">
+                    <Replace size={14} /> Replace
+                  </button>
+                  <button onClick={() => setDeleteTarget(img._id)} className="text-red-600 text-sm flex items-center gap-1 hover:underline">
+                    <Trash2 size={14} /> Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}

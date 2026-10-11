@@ -37,6 +37,7 @@ interface ImageUploaderProps {
   maxSizeMB?: number;
   previewHeightClass?: string;
   className?: string;
+  showRemove?: boolean;
 }
 
 const DEFAULT_ASPECTS: AspectOption[] = [
@@ -60,6 +61,7 @@ export default function ImageUploader({
   maxSizeMB = 5,
   previewHeightClass = "h-44",
   className = "",
+  showRemove = true,
 }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [src, setSrc] = useState<string | null>(null);
@@ -187,13 +189,15 @@ export default function ImageUploader({
             >
               <Replace size={14} /> Replace
             </button>
-            <button
-              type="button"
-              onClick={() => onChange(null)}
-              className="bg-red-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-red-700"
-            >
-              <Trash2 size={14} /> Remove
-            </button>
+            {showRemove && (
+              <button
+                type="button"
+                onClick={() => onChange(null)}
+                className="bg-red-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-red-700"
+              >
+                <Trash2 size={14} /> Remove
+              </button>
+            )}
           </div>
           {justUploaded && (
             <span className="absolute top-2 left-2 bg-green-600 text-white text-[11px] px-2 py-0.5 rounded-full flex items-center gap-1">

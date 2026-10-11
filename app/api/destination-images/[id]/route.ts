@@ -13,16 +13,35 @@ export async function PUT(
     if (denied) return denied;
 
     const { id } = await params;
-    const body = (await request.json()) as { alt?: string; order?: number };
-    const { alt, order } = body;
+    const body = (await request.json()) as { alt?: string; order?: number; url?: string; publicId?: string };
+    const { alt, order, url, publicId } = body;
 
     const client = await clientPromise();
     const db = client.db('abmtours');
     const collection = db.collection('destinationimages');
 
-    const updateFields: { alt?: string; order?: number } = {};
+    const updateFields: {
+      alt?: string;
+      order?: number;
+      url?: string;
+      publicId?: string;
+    } = {};
     if (alt !== undefined) updateFields.alt = alt;
     if (order !== undefined) updateFields.order = order;
+
+    if (url) {
+      // Replace the underlying asset and clean up the previous one.
+      const existing = await collection.findOne({ _id: new ObjectId(id) });
+      updateFields.url = url;
+      updateFields.publicId = publicId || '';
+      if (existing?.publicId && existing.publicId !== publicId) {
+        try {
+          await removeStoredAsset({ url: existing.url, publicId: existing.publicId });
+        } catch (assetError) {
+          console.warn('Failed to delete replaced asset:', assetError);
+        }
+      }
+    }
 
     await collection.updateOne(
       { _id: new ObjectId(id) },

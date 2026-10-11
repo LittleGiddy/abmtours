@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import {
   Trash2, Edit2, Check, X, Loader2,
-  ChevronUp, ChevronDown, Image as ImageIcon, Plus, Search, Eye,
+  ChevronUp, ChevronDown, Image as ImageIcon, Plus, Search, Eye, Replace,
 } from "lucide-react";
 import ImageUploader, { type UploadedImage } from "@/app/components/admin/ImageUploader";
 
@@ -38,6 +38,8 @@ export default function AdminGallery() {
   const [category, setCategory] = useState("safari");
   const [creating, setCreating] = useState(false);
   const [preview, setPreview] = useState<GalleryImage | null>(null);
+  const [replaceTarget, setReplaceTarget] = useState<GalleryImage | null>(null);
+  const [replacing, setReplacing] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -110,6 +112,25 @@ export default function AdminGallery() {
     setCaptionText("");
     setCategory("safari");
     setShowAdd(false);
+  };
+
+  const replaceImage = async (id: string, img: UploadedImage) => {
+    setReplacing(true);
+    try {
+      const res = await fetch(`/api/gallery/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: img.url, publicId: img.publicId }),
+      });
+      if (!res.ok) throw new Error();
+      await fetchImages();
+      setToast({ message: "Image replaced", type: "success" });
+      setReplaceTarget(null);
+    } catch {
+      setToast({ message: "Replace failed", type: "error" });
+    } finally {
+      setReplacing(false);
+    }
   };
 
   const deleteImage = async (id: string) => {
@@ -198,6 +219,39 @@ export default function AdminGallery() {
               </span>
               {preview.caption && <p className="text-white text-sm">{preview.caption}</p>}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Replace modal */}
+      {replaceTarget && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          onClick={() => !replacing && setReplaceTarget(null)}
+        >
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Replace Image</h3>
+              <button onClick={() => setReplaceTarget(null)} disabled={replacing} className="text-gray-400 hover:text-gray-700">
+                <X size={20} />
+              </button>
+            </div>
+            <ImageUploader
+              label="New photo"
+              folder="abmtours/gallery"
+              value={replaceTarget.url}
+              onChange={(img) => { if (img) replaceImage(replaceTarget._id, img); }}
+              aspect={4 / 3}
+              maxSizeMB={5}
+              previewHeightClass="h-56"
+              showRemove={false}
+              helperText="Crop, zoom & rotate, then upload to replace"
+            />
+            {replacing && (
+              <p className="mt-3 text-sm text-gray-500 flex items-center gap-2">
+                <Loader2 className="animate-spin" size={15} /> Replacing...
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -329,8 +383,9 @@ export default function AdminGallery() {
                 <>
                   <p className="text-xs text-gray-500 truncate mb-1">Alt: {img.alt}</p>
                   <p className="text-xs text-gray-500 mb-1">{categories.find((c) => c.value === img.category)?.label}</p>
-                  <div className="flex justify-between items-center mt-2">
+                  <div className="flex items-center gap-3 mt-2 flex-wrap">
                     <button onClick={() => { setEditingId(img._id); setEditAlt(img.alt); setEditCaption(img.caption || ""); setEditCategory(img.category); }} className="text-blue-600 text-xs flex items-center gap-1 hover:underline"><Edit2 size={12} /> Edit</button>
+                    <button onClick={() => setReplaceTarget(img)} className="text-emerald-600 text-xs flex items-center gap-1 hover:underline"><Replace size={12} /> Replace</button>
                     <button onClick={() => setDeleteTarget(img._id)} className="text-red-600 text-xs flex items-center gap-1 hover:underline"><Trash2 size={12} /> Delete</button>
                   </div>
                 </>

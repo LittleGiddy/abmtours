@@ -10,6 +10,8 @@ type UpdateData = {
   caption?: string;
   category?: string;
   order?: number;
+  url?: string;
+  publicId?: string;
 };
 
 export async function DELETE(
@@ -52,7 +54,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { alt, caption, category, order } = body as UpdateData;
+    const { alt, caption, category, order, url, publicId } = body as UpdateData;
 
     const client = await clientPromise();
     const db = client.db('abmtours');
@@ -64,10 +66,24 @@ export async function PUT(
     if (category !== undefined) updateFields.category = category;
     if (order !== undefined) updateFields.order = order;
 
+    if (url) {
+      const existing = await collection.findOne({ _id: new ObjectId(id) });
+      updateFields.url = url;
+      updateFields.publicId = publicId || '';
+      if (existing?.publicId && existing.publicId !== publicId) {
+        try {
+          await removeStoredAsset({ url: existing.url, publicId: existing.publicId });
+        } catch (assetError) {
+          console.warn('Failed to delete replaced asset:', assetError);
+        }
+      }
+    }
+
     await collection.updateOne(
       { _id: new ObjectId(id) },
       { $set: updateFields }
     );
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('PUT error:', error);
