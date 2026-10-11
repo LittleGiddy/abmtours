@@ -11,8 +11,7 @@ import {
   Baby, Wallet, FileText, AlertTriangle, Check, ArrowLeft, ArrowRight,
   Send,
 } from "lucide-react";
-import { PhoneInput } from "react-international-phone";
-import "react-international-phone/style.css";
+import PhoneField from "../components/PhoneField";
 import AdsterraBanner from "../components/AdsterraBanner";
 
 // ---------- Types ----------
@@ -614,16 +613,14 @@ export default function BookNow() {
                       <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                         <Phone className="w-4 h-4 text-blue-700" /> Phone *
                       </label>
-                      <div className={`rounded-2xl border-2 overflow-hidden ${hasError("phone") ? "border-red-400 bg-red-50" : "border-gray-200 focus-within:border-blue-500"}`}>
-                        <PhoneInput
-                          defaultCountry="tz"
-                          value={formData.phone}
-                          onChange={handlePhoneChange}
-                          onBlur={handlePhoneBlur}
-                          inputClassName="!w-full !p-4 !text-base !border-0 !bg-transparent focus:!outline-none"
-                          className="!w-full"
-                        />
-                      </div>
+                      <PhoneField
+                        defaultCountry="tz"
+                        value={formData.phone}
+                        onChange={handlePhoneChange}
+                        onBlur={handlePhoneBlur}
+                        hasError={hasError("phone")}
+                        placeholder="712 345 678"
+                      />
                       {hasError("phone") && <p className="text-red-500 text-sm mt-1">{fieldErrors.phone}</p>}
                     </div>
                   </div>
