@@ -51,6 +51,7 @@ export default function PhoneField({
       defaultCountry,
       value,
       countries: defaultCountries,
+      disableDialCodeAndPrefix: true,
       onChange: (data) => onChange(data.phone),
     });
 
