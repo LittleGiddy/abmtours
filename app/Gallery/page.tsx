@@ -3,6 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
+import type { LucideIcon } from "lucide-react";
+import { Globe, PawPrint, Waves, Mountain, Landmark, Camera, X } from "lucide-react";
 
 interface GalleryImage {
   _id: string;
@@ -13,11 +15,16 @@ interface GalleryImage {
   order: number;
 }
 
-const categoryIcons: Record<string, string> = {
-  safari: "🦁",
-  beach: "🏖️",
-  mountain: "⛰️",
-  culture: "🎭",
+const categoryIcons: Record<string, LucideIcon> = {
+  safari: PawPrint,
+  beach: Waves,
+  mountain: Mountain,
+  culture: Landmark,
+};
+
+const CatIcon = ({ cat, className }: { cat: string; className?: string }) => {
+  const Icon = categoryIcons[cat] || Camera;
+  return <Icon className={className} />;
 };
 
 const ITEMS_PER_PAGE = 6;
@@ -116,25 +123,25 @@ export default function Gallery() {
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           <button
             onClick={() => handleTabChange("all")}
-            className={`px-6 py-3 rounded-full text-base font-medium transition-all ${
+            className={`px-6 py-3 rounded-full text-base font-medium transition-all flex items-center gap-2 ${
               activeTab === "all"
                 ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg"
                 : "bg-white/70 text-gray-700 hover:bg-amber-50"
             }`}
           >
-            🌍 All
+            <Globe className="w-4 h-4" /> All
           </button>
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => handleTabChange(cat)}
-              className={`px-6 py-3 rounded-full text-base font-medium transition-all ${
+              className={`px-6 py-3 rounded-full text-base font-medium transition-all flex items-center gap-2 ${
                 activeTab === cat
                   ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg"
                   : "bg-white/70 text-gray-700 hover:bg-amber-50"
               }`}
             >
-              {categoryIcons[cat] || "📸"} {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              <CatIcon cat={cat} className="w-4 h-4" /> {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </button>
           ))}
         </div>
@@ -176,8 +183,8 @@ export default function Gallery() {
                         {img.caption}
                       </p>
                     )}
-                    <span className="inline-block mt-2 px-3 py-1 text-xs font-semibold bg-amber-600 text-white rounded-full w-fit">
-                      {categoryIcons[img.category]} {img.category}
+                    <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 text-xs font-semibold bg-amber-600 text-white rounded-full w-fit">
+                      <CatIcon cat={img.category} className="w-3.5 h-3.5" /> {img.category}
                     </span>
                   </div>
                 </div>
@@ -258,15 +265,15 @@ export default function Gallery() {
                       {selectedImage.caption}
                     </p>
                   )}
-                  <span className="inline-block mt-3 px-3 py-1 text-sm bg-amber-100 text-amber-800 rounded-full">
-                    {categoryIcons[selectedImage.category]} {selectedImage.category}
+                  <span className="inline-block mt-3 px-3 py-1 text-sm bg-amber-100 text-amber-800 rounded-full flex items-center gap-1.5 w-fit">
+                    <CatIcon cat={selectedImage.category} className="w-4 h-4" /> {selectedImage.category}
                   </span>
                 </div>
                 <button
                   onClick={() => setSelectedImage(null)}
                   className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition"
                 >
-                  ✕
+                  <X className="w-5 h-5" />
                 </button>
               </motion.div>
             </motion.div>

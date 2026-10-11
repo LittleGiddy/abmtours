@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import {
   Trash2, Edit2, Check, X, Loader2,
   ChevronUp, ChevronDown, Image as ImageIcon, Plus, Search, Eye, Replace,
+  PawPrint, Waves, Mountain, Landmark,
 } from "lucide-react";
 import ImageUploader, { type UploadedImage } from "@/app/components/admin/ImageUploader";
 
@@ -19,11 +20,22 @@ interface GalleryImage {
 type UpdateableFields = Partial<Pick<GalleryImage, "alt" | "caption" | "category" | "order">>;
 
 const categories = [
-  { value: "safari", label: "🦁 Safari" },
-  { value: "beach", label: "🏖️ Beach" },
-  { value: "mountain", label: "⛰️ Mountain" },
-  { value: "culture", label: "🎭 Culture" },
+  { value: "safari", label: "Safari", icon: PawPrint },
+  { value: "beach", label: "Beach", icon: Waves },
+  { value: "mountain", label: "Mountain", icon: Mountain },
+  { value: "culture", label: "Culture", icon: Landmark },
 ];
+
+function CategoryLabel({ value }: { value: string }) {
+  const cat = categories.find((c) => c.value === value);
+  if (!cat) return null;
+  const Icon = cat.icon;
+  return (
+    <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+      <Icon size={12} /> {cat.label}
+    </p>
+  );
+}
 
 const ADJECTIVES = ["Stunning", "Breathtaking", "Magnificent", "Incredible", "Captivating"];
 
@@ -382,7 +394,7 @@ export default function AdminGallery() {
               ) : (
                 <>
                   <p className="text-xs text-gray-500 truncate mb-1">Alt: {img.alt}</p>
-                  <p className="text-xs text-gray-500 mb-1">{categories.find((c) => c.value === img.category)?.label}</p>
+                  <CategoryLabel value={img.category} />
                   <div className="flex items-center gap-3 mt-2 flex-wrap">
                     <button onClick={() => { setEditingId(img._id); setEditAlt(img.alt); setEditCaption(img.caption || ""); setEditCategory(img.category); }} className="text-blue-600 text-xs flex items-center gap-1 hover:underline"><Edit2 size={12} /> Edit</button>
                     <button onClick={() => setReplaceTarget(img)} className="text-emerald-600 text-xs flex items-center gap-1 hover:underline"><Replace size={12} /> Replace</button>

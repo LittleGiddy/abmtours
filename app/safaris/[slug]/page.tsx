@@ -4,7 +4,7 @@ import { useEffect, useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { FiMapPin, FiChevronDown, FiChevronUp, FiUsers, FiClock, FiCompass } from "react-icons/fi";
+import { FiMapPin, FiChevronDown, FiChevronUp, FiUsers, FiClock, FiCompass, FiSun, FiCheck, FiCalendar, FiCoffee, FiMoon, FiHome, FiCheckCircle, FiXCircle, FiArrowRight } from "react-icons/fi";
 
 // ---------- Types ----------
 interface PriceTier {
@@ -292,7 +292,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
               <FiCompass className="w-4 h-4" /> 4x4 Safari Jeep
             </span>
             <span className="bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full flex items-center gap-2">
-              🌿 Best season: June-Oct
+              <FiSun className="w-4 h-4" /> Best season: June-Oct
             </span>
           </motion.div>
         </div>
@@ -341,7 +341,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
                   transition={{ delay: i * 0.05 }}
                   className="flex items-start gap-2 text-gray-700 dark:text-gray-300"
                 >
-                  <span className="text-green-600 dark:text-green-400 mt-1">✓</span>
+                  <FiCheck className="text-green-600 dark:text-green-400 mt-1 shrink-0" />
                   <span>{h}</span>
                 </motion.li>
               ))}
@@ -424,8 +424,8 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
 
             {/* Itinerary Accordion */}
             <motion.div variants={fadeInUp}>
-              <h3 className="text-2xl md:text-3xl font-bold mb-6 text-orange-600 dark:text-orange-400 flex items-center gap-2">
-                <span className="text-3xl">🗓️</span> Detailed Itinerary
+              <h3 className="text-2xl md:text-3xl font-bold mb-6 text-orange-600 dark:text-orange-400 flex items-center gap-3">
+                <FiCalendar className="w-7 h-7" /> Detailed Itinerary
               </h3>
               <div className="space-y-4">
                 {itineraryDays.length > 0 ? (
@@ -472,12 +472,12 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
                             ))}
                             {day.meals && day.meals.length > 0 && (
                               <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 border-t pt-3 flex gap-2">
-                                <span className="font-medium">🍽️ Meals:</span> <span>{day.meals.join(", ")}</span>
+                                <FiCoffee className="mt-0.5 shrink-0" /> <span className="font-medium">Meals:</span> <span>{day.meals.join(", ")}</span>
                               </div>
                             )}
                             {day.overnight && (
                               <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 flex gap-2">
-                                <span className="font-medium">🏨 Overnight:</span> <span>{day.overnight}</span>
+                                <FiMoon className="mt-0.5 shrink-0" /> <span className="font-medium">Overnight:</span> <span>{day.overnight}</span>
                               </div>
                             )}
                           </motion.div>
@@ -496,8 +496,8 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
             {/* Accommodation Gallery */}
             {accommodation.images.length > 0 && (
               <motion.div variants={fadeInUp}>
-                <h3 className="text-2xl md:text-3xl font-bold mb-6 text-orange-600 dark:text-orange-400 flex items-center gap-2">
-                  <span className="text-3xl">🏨</span> Accommodation
+                <h3 className="text-2xl md:text-3xl font-bold mb-6 text-orange-600 dark:text-orange-400 flex items-center gap-3">
+                  <FiHome className="w-7 h-7" /> Accommodation
                 </h3>
                 {accommodation.title && <h4 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">{accommodation.title}</h4>}
                 {accommodation.description && <p className="text-gray-600 dark:text-gray-400 mb-6">{accommodation.description}</p>}
@@ -524,7 +524,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
               <motion.div variants={fadeInUp} className="grid md:grid-cols-2 gap-6 bg-gray-50 dark:bg-gray-800/30 p-6 md:p-8 rounded-2xl">
                 {packageData.includedList && packageData.includedList.length > 0 && (
                   <div>
-                    <h4 className="font-bold text-green-700 dark:text-green-400 text-lg mb-3 flex items-center gap-2">✓ Included</h4>
+                    <h4 className="font-bold text-green-700 dark:text-green-400 text-lg mb-3 flex items-center gap-2"><FiCheckCircle className="w-5 h-5" /> Included</h4>
                     <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
                       {packageData.includedList.map((item, i) => <li key={i}>{item}</li>)}
                     </ul>
@@ -532,7 +532,7 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
                 )}
                 {packageData.excludedList && packageData.excludedList.length > 0 && (
                   <div>
-                    <h4 className="font-bold text-red-700 dark:text-red-400 text-lg mb-3 flex items-center gap-2">✗ Excluded</h4>
+                    <h4 className="font-bold text-red-700 dark:text-red-400 text-lg mb-3 flex items-center gap-2"><FiXCircle className="w-5 h-5" /> Excluded</h4>
                     <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
                       {packageData.excludedList.map((item, i) => <li key={i}>{item}</li>)}
                     </ul>
@@ -646,8 +646,8 @@ export default function SafariDetailPage({ params }: { params: Promise<{ slug: s
               className="mt-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 text-center text-sm text-gray-600 dark:text-gray-400"
             >
               <p className="font-medium">Need help choosing?</p>
-              <Link href="/ContactUs" className="text-orange-600 dark:text-orange-400 hover:underline mt-1 inline-block">
-                Talk to a safari expert →
+              <Link href="/ContactUs" className="text-orange-600 dark:text-orange-400 hover:underline mt-1 inline-flex items-center gap-1">
+                Talk to a safari expert <FiArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
           </div>

@@ -113,12 +113,12 @@ export async function POST(request: Request) {
 
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 5px;">
-          <h1 style="color: #1e3a8a; text-align: center;">📋 New Booking Request</h1>
+          <h1 style="color: #1e3a8a; text-align: center;">New Booking Request</h1>
           <p style="font-size: 16px; text-align: center;">You have received a new booking request from <strong>${firstName} ${lastName}</strong>.</p>
           <p style="text-align: center; color: #666;">Submitted on: <strong>${localTime}</strong> (East Africa Time)</p>
           
           <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
-            <h3 style="margin-top: 0;">📝 Booking Details</h3>
+            <h3 style="margin-top: 0;">Booking Details</h3>
             <p><strong>Name:</strong> ${firstName} ${lastName}</p>
             <p><strong>Email:</strong> ${email}</p>
             <p><strong>Phone:</strong> ${phone}</p>
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
       const mailOptions = {
         from: `"ABM Tours" <${process.env.EMAIL_USER}>`,
         to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-        subject: `📅 New Booking from ${firstName} ${lastName} - ${new Date().toLocaleDateString()}`,
+        subject: `New Booking from ${firstName} ${lastName} - ${new Date().toLocaleDateString()}`,
         html: emailHtml,
       };
 

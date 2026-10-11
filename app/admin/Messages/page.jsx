@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FaTrash, FaEye, FaEnvelope, FaUser, FaCalendar, FaTimes, FaInbox, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaTrash, FaEye, FaEnvelope, FaUser, FaCalendar, FaTimes, FaCheck, FaInbox, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Flash message component
@@ -24,7 +24,7 @@ const FlashMessage = ({ message, type, onClose }) => {
     >
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-          {type === 'success' ? '✓' : '✕'}
+          {type === 'success' ? <FaCheck className="w-4 h-4" /> : <FaTimes className="w-4 h-4" />}
         </div>
         <p className="font-medium">{message}</p>
       </div>

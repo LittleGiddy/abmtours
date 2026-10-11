@@ -14,7 +14,9 @@ import {
   ChevronRight,
   FileText,
   Briefcase,
-  Users
+  Users,
+  Check,
+  X
 } from 'lucide-react';
 import Papa from 'papaparse';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -58,7 +60,7 @@ const FlashMessage = ({ message, type, onClose }: { message: string; type: 'succ
     >
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-          {type === 'success' ? '✓' : '✕'}
+          {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
         </div>
         <p className="font-medium">{message}</p>
       </div>
@@ -159,7 +161,7 @@ const ViewDetailsModal = ({ booking, onClose }: { booking: Booking | null; onClo
             onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
         </div>
         

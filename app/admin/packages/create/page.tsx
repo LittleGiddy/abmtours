@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { 
   ChevronDown, ChevronUp, Plus, Trash2, Upload, Image as ImageIcon, 
-  Eye, CheckCircle, Info, Briefcase, Settings, ArrowLeft,
+  Eye, CheckCircle, XCircle, Info, Briefcase, Settings, ArrowLeft,
 } from "lucide-react";
 
 // ----------------------------- Types -----------------------------
@@ -646,7 +646,7 @@ export default function CreatePackage() {
           <Section title="Inclusions & Exclusions" icon={<CheckCircle className="w-5 h-5 text-blue-600" />} defaultOpen>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">✓ What&apos;s Included</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-green-600" /> What&apos;s Included</label>
                 <div className="flex gap-2 mb-2">
                   <input type="text" className="flex-1 p-2 border rounded-lg" value={includedInput} onChange={(e) => setIncludedInput(e.target.value)} placeholder="e.g., Park fees" />
                   <button type="button" onClick={addIncluded} className="bg-green-600 text-white px-4 rounded-lg hover:bg-green-700">Add</button>
@@ -661,7 +661,7 @@ export default function CreatePackage() {
                 </ul>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">✗ What&apos;s Excluded</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5"><XCircle className="w-4 h-4 text-red-600" /> What&apos;s Excluded</label>
                 <div className="flex gap-2 mb-2">
                   <input type="text" className="flex-1 p-2 border rounded-lg" value={excludedInput} onChange={(e) => setExcludedInput(e.target.value)} placeholder="e.g., International flights" />
                   <button type="button" onClick={addExcluded} className="bg-red-600 text-white px-4 rounded-lg hover:bg-red-700">Add</button>

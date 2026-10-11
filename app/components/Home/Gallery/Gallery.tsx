@@ -3,6 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
+import type { LucideIcon } from "lucide-react";
+import { Globe, PawPrint, Waves, Mountain, Landmark, Camera, X } from "lucide-react";
 import { DEFAULT_SECTIONS } from "@/lib/siteContent";
 
 interface GalleryImage {
@@ -14,11 +16,16 @@ interface GalleryImage {
   order: number;
 }
 
-const categoryIcons: Record<string, string> = {
-  safari: "🦁",
-  beach: "🏖️",
-  mountain: "⛰️",
-  culture: "🎭",
+const categoryIcons: Record<string, LucideIcon> = {
+  safari: PawPrint,
+  beach: Waves,
+  mountain: Mountain,
+  culture: Landmark,
+};
+
+const CatIcon = ({ cat, className }: { cat: string; className?: string }) => {
+  const Icon = categoryIcons[cat] || Camera;
+  return <Icon className={className} />;
 };
 
 const Gallery = () => {
@@ -120,13 +127,17 @@ const Gallery = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setActiveTab(category)}
-                    className={`px-5 md:px-6 py-2 rounded-full text-sm capitalize transition-all ${
+                    className={`px-5 md:px-6 py-2 rounded-full text-sm capitalize transition-all flex items-center gap-1.5 ${
                       activeTab === category
                         ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg font-medium"
                         : "bg-white shadow-md text-blue-950 hover:bg-amber-50"
                     }`}
                   >
-                    {categoryIcons[category] ? `${categoryIcons[category]} ` : ""}
+                    {category === "all" ? (
+                      <Globe className="w-4 h-4" />
+                    ) : (
+                      <CatIcon cat={category} className="w-4 h-4" />
+                    )}
                     {category}
                   </motion.button>
                 ))}
@@ -174,8 +185,8 @@ const Gallery = () => {
                         </p>
                       )}
                       {image.category && (
-                        <span className="inline-block mt-2 px-3 py-1 text-xs font-semibold bg-amber-600 text-white rounded-full">
-                          {categoryIcons[image.category] || ""}{" "}
+                        <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 text-xs font-semibold bg-amber-600 text-white rounded-full">
+                          <CatIcon cat={image.category} className="w-3.5 h-3.5" />
                           {image.category}
                         </span>
                       )}
@@ -237,8 +248,8 @@ const Gallery = () => {
                   </p>
                 )}
                 {selectedImage.category && (
-                  <span className="inline-block mt-3 px-3 py-1 text-sm bg-amber-100 text-amber-800 rounded-full">
-                    {categoryIcons[selectedImage.category] || ""}{" "}
+                  <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 text-sm bg-amber-100 text-amber-800 rounded-full">
+                    <CatIcon cat={selectedImage.category} className="w-4 h-4" />
                     {selectedImage.category}
                   </span>
                 )}
@@ -248,7 +259,7 @@ const Gallery = () => {
                 className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition"
                 aria-label="Close"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </motion.div>
           </motion.div>
